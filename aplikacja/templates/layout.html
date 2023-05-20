@@ -4,11 +4,11 @@
     {% block head %}
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
     <title>{% block title %}{% endblock %} - My Webpage</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
           integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
     {% endblock %}
 </head>
@@ -30,7 +30,7 @@
             <div class="navbar-collapse collapse dual-collapse2" >
                 <ul class="navbar-nav ml-auto">
                     {% if g.user %}
-                    <li class="nav-item"><span>{{ g.user['username'] }}</span>
+                    <li class="nav-item"><span class="navbar-text text-white">{{ g.user['username'] }}</span>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.logout') }}">Log Out</a>
                         {% else %}
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.register') }}">Register</a>
@@ -54,7 +54,10 @@
 </div>
 <div id="footer">
     {% block footer %}
-    &copy; Copyright 2010 by <a href="http://domain.invalid/">you</a>.
+    <div class="text-center p-4" style="background-color: rgb(200,200,200);">
+    © 2023 Copyright:
+    <a class="text-reset fw-bold" href="#">Mateusz N</a>
+  </div>
     {% endblock %}
 </div>
 
