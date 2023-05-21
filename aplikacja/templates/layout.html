@@ -8,7 +8,7 @@
     <title>{% block title %}{% endblock %} - My Webpage</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
           integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
     {% endblock %}
 </head>
@@ -20,14 +20,14 @@
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".dual-collapse2">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="navbar-collapse collapse dual-collapse2" >
+            <div class="navbar-collapse collapse dual-collapse2">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}"> Home </a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}"> First Page </a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}"> Second Page </a></li>
                 </ul>
             </div>
-            <div class="navbar-collapse collapse dual-collapse2" >
+            <div class="navbar-collapse collapse dual-collapse2">
                 <ul class="navbar-nav ml-auto">
                     {% if g.user %}
                     <li class="nav-item"><span class="navbar-text text-white">{{ g.user['username'] }}</span>
@@ -48,16 +48,18 @@
 <div id="content">
     {% for message in get_flashed_messages() %}
     <div class="flash">{{ message }}</div>
-  {% endfor %}
+    {% endfor %}
 
     {% block content %}{% endblock %}
 </div>
 <div id="footer">
     {% block footer %}
-    <div class="text-center p-4" style="background-color: rgb(200,200,200);">
-    © 2023 Copyright:
-    <a class="text-reset fw-bold" href="#">Mateusz N</a>
-  </div>
+    <footer class="footer mt-auto py-3 bg-light">
+        <div class="text-center p-2" style="background-color: rgb(200,200,200);">
+            © 2023 Copyright:
+            <a class="text-reset fw-bold" href="#">Mateusz N</a>
+        </div>
+    </footer>
     {% endblock %}
 </div>
 
