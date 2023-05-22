@@ -1,30 +1,40 @@
 {% extends 'layout.html' %}
 
 {% block header %}
-  <h1>{% block title %}History{% endblock %}</h1>
-  {% if g.user %}
-    <a class="action" href="{{ url_for('data.create') }}">New</a>
-  {% endif %}
+<h1>{% block title %}History{% endblock %}</h1>
+{% if g.user %}
+<a class="action" href="{{ url_for('data.create') }}">New</a>
+{% endif %}
 {% endblock %}
 
 {% block content %}
-  {% for data in all_data %}
-    <article class="post">
-      <header>
-        <div>
-          <h1>{{ data['created'].strftime('%Y-%m-%d') }}</h1>
-          <div class="about">by {{ data['username'] }} on {{ data['created'].strftime('%Y-%m-%d') }}</div>
+<div class="container py-2 h-100">
+    <div class="row d-flex justify-content-center align-items-center h-100">
+
+        <div class="card shadow-2-strong px-3 py-1" style="border-radius: 1rem;">
+            {% for data in all_data %}
+            <article class="post">
+                <header>
+                    <div class="row d-flex justify-content-around align-items-center">
+                        <h3>{{ data['glucose'] }}</h3>
+                        <button class="btn btn-secondary btn-sm" type="button" value="Edit">Edit</button>
+                    </div>
+
+                    {% if g.user['id'] == data['author_id'] %}
+
+                    {% endif %}
+
+                </header>
+                <p class="date">Date&#58; {{ data['created'].strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                <p class="activity">Activity&#58; {{ data['activity'] }}</p>
+                <p class="info">Info&#58; {{ data['info'] }}</p>
+            </article>
+            {% if not loop.last %}
+            <hr>
+            {% endif %}
+            {% endfor %}
         </div>
 
-        {% if g.user['id'] == data['author_id'] %}
-          <a class="action" href="{{ url_for('data.update', id=data['id']) }}">Edit</a>
-        {% endif %}
-
-      </header>
-      <p class="glucose">{{ data['glucose'] }}</p>
-    </article>
-    {% if not loop.last %}
-      <hr>
-    {% endif %}
-  {% endfor %}
+    </div>
+</div>
 {% endblock %}

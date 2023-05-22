@@ -1,0 +1,20 @@
+{% extends 'layout.html' %}
+
+{% block header %}
+  <h1>{% block title %}Edit "{{ data['glucose'] }}"{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form method="post">
+    <label for="glucose">Glucose</label>
+    <input name="glucose" id="glucose"
+      value="{{ request.form['glucose'] or data['glucose'] }}" required>
+    <label for="activity">Activity</label>
+    <textarea name="activity" id="activity">{{ request.form['activity'] or data['activity'] }}</textarea>
+    <label for="info">Info</label>
+    <textarea name="info" id="info">{{ request.form['info'] or data['info']}}</textarea>
+    <input type="submit" value="Save">
+  </form>
+  <hr>
+
+{% endblock %}
