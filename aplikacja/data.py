@@ -89,3 +89,13 @@ def update(id):
             return redirect(url_for('data.all'))
 
     return render_template('data/update.html', data=data)
+
+@bp.route('/<int:id>/delete', methods=('POST',))
+@login_required
+def delete(id):
+    print('id:')
+    get_single_data(id)
+    db = get_db()
+    db.execute('DELETE FROM data WHERE id = ?', (id,))
+    db.commit()
+    return redirect(url_for('data.all'))

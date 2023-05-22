@@ -1,20 +1,51 @@
 {% extends 'layout.html' %}
 
 {% block header %}
-  <h1>{% block title %}Edit "{{ data['glucose'] }}"{% endblock %}</h1>
+<h1>{% block title %}Edit {{ data['glucose'] }}{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
-  <form method="post">
-    <label for="glucose">Glucose</label>
-    <input name="glucose" id="glucose"
-      value="{{ request.form['glucose'] or data['glucose'] }}" required>
-    <label for="activity">Activity</label>
-    <textarea name="activity" id="activity">{{ request.form['activity'] or data['activity'] }}</textarea>
-    <label for="info">Info</label>
-    <textarea name="info" id="info">{{ request.form['info'] or data['info']}}</textarea>
-    <input type="submit" value="Save">
-  </form>
-  <hr>
 
+
+<div class="container py-5 h-100">
+    <div class="row d-flex justify-content-center align-items-center h-100">
+
+        <div class="card shadow-2-strong" style="border-radius: 1rem;">
+            <div class="card-body p-5 text-center">
+                <form method="post">
+
+
+                    <h3 class="mb-5">Update entry</h3>
+
+                    <div class="form-outline mb-4">
+                        <input name="glucose" id="glucose" class="form-control form-control-lg"
+                               value="{{ request.form['glucose']  or data['glucose'] }}" required/>
+                        <label class="form-label" for="glucose">Glucose</label>
+                    </div>
+                    <div class="form-outline mb-4">
+                        <input name="activity" id="activity" class="form-control form-control-lg"
+                               value="{{ request.form['activity'] or data['activity']}}"/>
+                        <label class="form-label" for="activity">Activity</label>
+                    </div>
+                    <div class="form-outline mb-4">
+                        <input name="info" id="info" class="form-control form-control-lg"
+                               value="{{ request.form['info'] or data['info']}}"/>
+                        <label class="form-label" for="info">Info</label>
+                    </div>
+
+                    <button class="btn btn-primary btn-lg btn-block" type="submit" value="Save">Save</button>
+
+
+                </form>
+                <hr>
+                <form action="{{ url_for('data.delete', id=data['id']) }}" method="post">
+                    <input class="btn btn-danger btn-lg btn-block" type="submit" value="Delete"
+                    >
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+</div>
 {% endblock %}
