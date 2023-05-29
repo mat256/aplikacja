@@ -29,10 +29,42 @@
                                value="{{ request.form['info'] }}"/>
                         <label class="form-label" for="info">Info</label>
                     </div>
+
+                    <div class="form-outline mb-4">
+
+                        <input name="date" id="date" class="form-control form-control-lg"
+                               value="{{ request.form['date'] }}" placeholder="DD/MM/YYY" type="text"/>
+                        <label class="form-label" for="date">Date</label>
+                    </div>
+
+
+
                     <button class="btn btn-primary btn-lg btn-block" type="submit" value="Save">Save</button>
 
 
                 </div>
+                <script>
+    $(document).ready(function(){
+      var date = new Date();
+      var today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+      var date_input=$('input[name="date"]');
+      var container=$('.bootstrap-iso form').length>0 ? $('.bootstrap-iso form').parent() : "body";
+      var options={
+        format: 'dd/mm/yyyy',
+        container: container,
+        todayHighlight: true,
+        autoclose: true,
+      };
+      date_input.datepicker(options);
+
+      $( '#date' ).datepicker( 'setDate', today );
+
+    })
+
+                </script>
+
+
             </form>
         </div>
 

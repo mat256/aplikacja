@@ -25,7 +25,8 @@
                     {% endif %}
 
                 </header>
-                <p class="date">Date&#58; {{ data['created'].strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                <p class="date">Date&#58; {{ data['custom_date']}}</p>
+                <p class="date_org">Date&#58; {{ data['created'].strftime('%Y-%m-%d %H:%M:%S') }}</p>
                 <p class="activity">Activity&#58; {{ data['activity'] }}</p>
                 <p class="info">Info&#58; {{ data['info'] }}</p>
             </article>

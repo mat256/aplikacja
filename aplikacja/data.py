@@ -13,7 +13,7 @@ bp = Blueprint('data', __name__, url_prefix='/data')
 def all():
     db = get_db()
     all_data = db.execute(
-        'SELECT p.id, glucose, activity, info, created, author_id, username'
+        'SELECT p.id, glucose, activity, info, custom_date, created, author_id, username'
         ' FROM data p JOIN user u ON p.author_id = u.id'
         ' WHERE p.author_id = ?'
         ' ORDER BY created DESC',(g.user['id'],)
@@ -27,6 +27,7 @@ def create():
         glucose = request.form['glucose']
         activity = request.form['activity']
         info = request.form['info']
+        custom_date = request.form['date']
         error = None
 
         if not glucose:
@@ -37,9 +38,9 @@ def create():
         else:
             db = get_db()
             db.execute(
-                'INSERT INTO data (glucose, activity, info, author_id)'
-                ' VALUES (?, ?, ?, ?)',
-                (glucose, activity, info, g.user['id'])
+                'INSERT INTO data (glucose, activity, info, custom_date, author_id)'
+                ' VALUES (?, ?, ?, ?, ?)',
+                (glucose, activity, info, custom_date, g.user['id'])
             )
             db.commit()
             return redirect(url_for('data.all'))
