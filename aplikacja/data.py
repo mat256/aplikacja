@@ -6,7 +6,12 @@ from werkzeug.exceptions import abort
 from aplikacja.auth import login_required
 from aplikacja.db import get_db
 
+from aplikacja import files
+from flask_uploads import IMAGES, UploadSet, configure_uploads
+import os
+
 bp = Blueprint('data', __name__, url_prefix='/data')
+
 
 @bp.route('/all')
 @login_required
@@ -23,6 +28,10 @@ def all():
 @bp.route('/create', methods=('GET', 'POST'))
 @login_required
 def create():
+    if request.method == 'POST' and 'file' in request.files:
+        files.save(request.files['file'])
+        flash("Photo saved successfully.")
+        return redirect(url_for('data.all'))
     if request.method == 'POST':
         glucose = request.form['glucose']
         activity = request.form['activity']
@@ -46,6 +55,34 @@ def create():
             return redirect(url_for('data.all'))
 
     return render_template('data/create.html')
+"""
+@bp.route('/upload', methods=('GET', 'POST'))
+@login_required
+def upload():
+    if request.method == 'POST':
+        glucose = request.form['glucose']
+        activity = request.form['activity']
+        info = request.form['info']
+        custom_date = request.form['date']
+        error = None
+
+        if not glucose:
+            error = 'Glucose is required.'
+
+        if error is not None:
+            flash(error)
+        else:
+            db = get_db()
+            db.execute(
+                'INSERT INTO data (glucose, activity, info, custom_date, author_id)'
+                ' VALUES (?, ?, ?, ?, ?)',
+                (glucose, activity, info, custom_date, g.user['id'])
+            )
+            db.commit()
+            return redirect(url_for('data.all'))
+
+    return render_template('data/create.html')
+"""
 
 def get_single_data(id, check_author=True):
     s_data = get_db().execute(
@@ -100,3 +137,5 @@ def delete(id):
     db.execute('DELETE FROM data WHERE id = ?', (id,))
     db.commit()
     return redirect(url_for('data.all'))
+
+

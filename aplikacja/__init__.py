@@ -1,17 +1,23 @@
 
 import os
+from flask_uploads import DOCUMENTS, DATA, UploadSet, configure_uploads
 
 from flask import Flask
 from flask import render_template
 
-
+files = UploadSet("files", DOCUMENTS)
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
+
     app.config.from_mapping(
+
         SECRET_KEY='dev',
         DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
     )
+    app.config["UPLOADED_FILES_DEST"] = "aplikacja/static/temp_files"
+
+    configure_uploads(app, files)
 
     if test_config is None:
         # load the instance config, if it exists, when not testing
