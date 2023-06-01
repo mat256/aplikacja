@@ -10,10 +10,22 @@ CREATE TABLE user (
 CREATE TABLE data (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   author_id INTEGER NOT NULL,
-  custom_date DATE NOT NULL,
+  custom_date TIMESTAMP NOT NULL,
   created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   glucose INTEGER NOT NULL,
-  activity TEXT NOT NULL,
-  info TEXT NOT NULL,
+  activity TEXT ,
+  info TEXT ,
+  from_file INTEGER DEFAULT 0 NOT NULL,
+  file_id INTEGER,
+  FOREIGN KEY (author_id) REFERENCES user (id)
+  FOREIGN KEY (file_id) REFERENCES file (id)
+);
+
+CREATE TABLE file (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  author_id INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  uploaded TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (author_id) REFERENCES user (id)
 );
+

@@ -7,6 +7,8 @@ from aplikacja.auth import login_required
 from aplikacja.db import get_db
 
 from aplikacja import files
+import pandas as pd
+
 from flask_uploads import IMAGES, UploadSet, configure_uploads
 import os
 
@@ -21,17 +23,39 @@ def all():
         'SELECT p.id, glucose, activity, info, custom_date, created, author_id, username'
         ' FROM data p JOIN user u ON p.author_id = u.id'
         ' WHERE p.author_id = ?'
-        ' ORDER BY created DESC',(g.user['id'],)
+        ' ORDER BY created DESC', (g.user['id'],)
     ).fetchall()
     return render_template('data/all.html', all_data=all_data)
+
 
 @bp.route('/create', methods=('GET', 'POST'))
 @login_required
 def create():
     if request.method == 'POST' and 'file' in request.files:
-        files.save(request.files['file'])
-        flash("Photo saved successfully.")
+        file = request.files['file']
+        #files.save(file)
+        db = get_db()
+        db.execute(
+            'INSERT INTO file (author_id, name)'
+            ' VALUES (?, ?)',
+            (g.user['id'], file.filename)
+        )
+        db.commit()
+
+        df = pd.read_excel(file)
+        df['author_id'] = [g.user['id']] * df.shape[0]
+        df['custom_date'] = df['Date']
+        df['from_file'] = [1] * df.shape[0]
+        df.fillna("", inplace=True)
+
+        df = df.drop(columns = ['ID', 'Date', 'Time'])
+
+        df.to_sql(name='data', con=db, if_exists='append', index=False)
+        db.commit()
+
+        # flash("Photo saved successfully.")
         return redirect(url_for('data.all'))
+
     if request.method == 'POST':
         glucose = request.form['glucose']
         activity = request.form['activity']
@@ -49,12 +73,14 @@ def create():
             db.execute(
                 'INSERT INTO data (glucose, activity, info, custom_date, author_id)'
                 ' VALUES (?, ?, ?, ?, ?)',
-                (glucose, activity, info, custom_date, g.user['id'])
+                (glucose, activity, info, custom_date + ' 00:00:00', g.user['id'])
             )
             db.commit()
             return redirect(url_for('data.all'))
 
     return render_template('data/create.html')
+
+
 """
 @bp.route('/upload', methods=('GET', 'POST'))
 @login_required
@@ -84,6 +110,7 @@ def upload():
     return render_template('data/create.html')
 """
 
+
 def get_single_data(id, check_author=True):
     s_data = get_db().execute(
         'SELECT p.id, glucose, activity, info, created, author_id, username'
@@ -99,6 +126,7 @@ def get_single_data(id, check_author=True):
         abort(403)
 
     return s_data
+
 
 @bp.route('/<int:id>/update', methods=('GET', 'POST'))
 @login_required
@@ -128,6 +156,7 @@ def update(id):
 
     return render_template('data/update.html', data=data)
 
+
 @bp.route('/<int:id>/delete', methods=('POST',))
 @login_required
 def delete(id):
@@ -137,5 +166,3 @@ def delete(id):
     db.execute('DELETE FROM data WHERE id = ?', (id,))
     db.commit()
     return redirect(url_for('data.all'))
-
-
