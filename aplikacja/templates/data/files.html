@@ -1,0 +1,40 @@
+{% extends 'layout.html' %}
+
+{% block header %}
+<h1>{% block title %}History{% endblock %}</h1>
+
+{% endblock %}
+
+{% block content %}
+<div class="container py-2 h-100">
+    <div class="row d-flex justify-content-center align-items-center h-100">
+
+        <div class="card shadow-2-strong px-3 py-1" style="border-radius: 1rem;">
+            {% for file in all_files %}
+            <article class="post">
+                <header>
+                    <div class="row d-flex justify-content-around align-items-center">
+                        <h3>{{ file['name'] }}</h3>
+                        <form action="{{ url_for('data.delete_file', id=file['id']) }}" onsubmit="openModal()" method="post">
+                       <input class="btn btn-danger btn-lg btn-block" type="submit" value="Delete">
+
+
+                        </form>
+
+                    </div>
+
+
+                </header>
+
+                <p class="date_org">Uploaded&#58; {{ file['uploaded'].strftime('%Y-%m-%d %H:%M:%S') }}</p>
+
+            </article>
+            {% if not loop.last %}
+            <hr>
+            {% endif %}
+            {% endfor %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}

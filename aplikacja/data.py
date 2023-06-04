@@ -9,6 +9,7 @@ from aplikacja.db import get_db
 from aplikacja import files
 import pandas as pd
 
+import sqlite3
 from flask_uploads import IMAGES, UploadSet, configure_uploads
 import os
 
@@ -27,6 +28,18 @@ def all():
     ).fetchall()
     return render_template('data/all.html', all_data=all_data)
 
+@bp.route('/files')
+@login_required
+def files():
+    db = get_db()
+    all_files = db.execute(
+        'SELECT p.id, name, author_id, uploaded'
+        ' FROM file p JOIN user u ON p.author_id = u.id'
+        ' WHERE p.author_id = ?'
+        ' ORDER BY uploaded DESC', (g.user['id'],)
+    ).fetchall()
+    return render_template('data/files.html', all_files=all_files)
+
 
 @bp.route('/create', methods=('GET', 'POST'))
 @login_required
@@ -35,17 +48,25 @@ def create():
         file = request.files['file']
         #files.save(file)
         db = get_db()
-        db.execute(
+        cur = db.execute(
             'INSERT INTO file (author_id, name)'
-            ' VALUES (?, ?)',
+            ' VALUES (?, ?)'
+            ' RETURNING id,name',
             (g.user['id'], file.filename)
         )
+        file_id = cur.fetchone()[0]
+        #print(cur)
+        #print(next(cur))
+        #print(cur.fetchone()[0])
+        #file_id = f.fetchall()
+        #print(file_id)
         db.commit()
 
         df = pd.read_excel(file)
         df['author_id'] = [g.user['id']] * df.shape[0]
         df['custom_date'] = df['Date']
         df['from_file'] = [1] * df.shape[0]
+        df['file_id'] = [file_id] * df.shape[0]
         df.fillna("", inplace=True)
 
         df = df.drop(columns = ['ID', 'Date', 'Time'])
@@ -53,7 +74,6 @@ def create():
         df.to_sql(name='data', con=db, if_exists='append', index=False)
         db.commit()
 
-        # flash("Photo saved successfully.")
         return redirect(url_for('data.all'))
 
     if request.method == 'POST':
@@ -160,9 +180,20 @@ def update(id):
 @bp.route('/<int:id>/delete', methods=('POST',))
 @login_required
 def delete(id):
-    print('id:')
+    #print('id:')
     get_single_data(id)
     db = get_db()
     db.execute('DELETE FROM data WHERE id = ?', (id,))
     db.commit()
     return redirect(url_for('data.all'))
+
+@bp.route('/<int:id>/delete_file', methods=('POST',))
+@login_required
+def delete_file(id):
+    #print('id:')
+    #get_single_data(id)
+    db = get_db()
+    db.execute('DELETE FROM file WHERE id = ?', (id,))
+    db.execute('DELETE FROM data WHERE file_id = ?', (id,))
+    db.commit()
+    return redirect(url_for('data.files'))
