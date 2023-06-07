@@ -15,6 +15,7 @@ CREATE TABLE data (
   glucose INTEGER NOT NULL,
   activity TEXT ,
   info TEXT ,
+  stat TEXT DEFAULT 'success',
   from_file INTEGER DEFAULT 0 NOT NULL,
   file_id INTEGER,
   FOREIGN KEY (author_id) REFERENCES user (id)
@@ -29,3 +30,15 @@ CREATE TABLE file (
   FOREIGN KEY (author_id) REFERENCES user (id)
 );
 
+CREATE TRIGGER add_glucose_stat_war AFTER INSERT ON data
+WHEN (new.glucose<70 AND new.glucose>=60) OR (new.glucose>140 AND new.glucose<180)
+  BEGIN
+    UPDATE data SET stat = 'warning' WHERE id = new.id;
+  END;
+
+  CREATE TRIGGER add_glucose_stat_dan AFTER INSERT ON data
+WHEN new.glucose>160 OR new.glucose<60
+  BEGIN
+
+    UPDATE data SET stat = 'danger' WHERE id = new.id;
+  END;

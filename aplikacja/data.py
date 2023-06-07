@@ -6,6 +6,7 @@ from werkzeug.exceptions import abort
 from aplikacja.auth import login_required
 from aplikacja.db import get_db
 
+import pygal
 from aplikacja import files
 import pandas as pd
 
@@ -21,12 +22,36 @@ bp = Blueprint('data', __name__, url_prefix='/data')
 def all():
     db = get_db()
     all_data = db.execute(
-        'SELECT p.id, glucose, activity, info, custom_date, created, author_id, username'
+        'SELECT p.id, glucose, activity, info, custom_date, created, stat, author_id, username'
         ' FROM data p JOIN user u ON p.author_id = u.id'
         ' WHERE p.author_id = ?'
         ' ORDER BY created DESC', (g.user['id'],)
     ).fetchall()
     return render_template('data/all.html', all_data=all_data)
+
+@bp.route('/charts/')
+@login_required
+def plot():
+    db = get_db()
+    all_data = db.execute(
+        'SELECT p.id, glucose, activity, info, custom_date, created, stat, author_id'
+        ' FROM data p JOIN user u ON p.author_id = u.id'
+        ' WHERE p.author_id = ?'
+        ' ORDER BY created DESC', (g.user['id'],)
+    ).fetchall()
+    #print(all_data[0][0])
+    tab = pd.read_sql('SELECT p.id, glucose, activity, info, custom_date, created, stat, author_id'
+        ' FROM data p JOIN user u ON p.author_id = u.id'
+        ' ORDER BY created DESC', db)
+    df = pd.DataFrame(all_data, columns=['id', 'glucose',' activity', 'info', 'custom_date','created', 'stat', 'author_id'])
+    print(df)
+    bar_chart = pygal.StackedBar()
+    bar_chart.add('Fibonacci', [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55])
+    bar_chart.add('Padovan', [1, 1, 1, 2, 2, 3, 4, 5, 7, 9, 12])
+    chart = bar_chart.render_data_uri()
+    #bar_chart.render()
+    return render_template('data/charts.html', chart=chart)
+
 
 @bp.route('/files')
 @login_required
