@@ -9,6 +9,7 @@ from aplikacja.db import get_db
 import pygal
 from aplikacja import files
 import pandas as pd
+from pygal.style import DarkStyle,DefaultStyle
 
 import sqlite3
 from flask_uploads import IMAGES, UploadSet, configure_uploads
@@ -29,9 +30,39 @@ def all():
     ).fetchall()
     return render_template('data/all.html', all_data=all_data)
 
+
 @bp.route('/charts')
 @login_required
 def charts():
+    config = pygal.Config()
+    config.style = pygal.style.DefaultStyle
+    config.defs.append('''
+      <linearGradient id="gradient-0" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%" stop-color="#f71505" />
+        <stop offset="64%" stop-color="#f7e305" />
+        <stop offset="80%" stop-color="#0aed02" />
+        <stop offset="92%" stop-color="#f7e305" />
+        <stop offset="100%" stop-color="#f71505" />
+      </linearGradient>
+    ''')
+    config.defs.append('''
+      <linearGradient id="gradient-1" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%" stop-color="#b6e354" />
+        <stop offset="100%" stop-color="#8cedff" />
+      </linearGradient>
+    ''')
+    config.css.append('''inline:
+      .color-0 {
+        fill: url(#gradient-0) !important;
+        stroke: url(#gradient-0) !important;
+      }''')
+    config.css.append('''inline:
+      .color-1 {
+        fill: url(#gradient-1) !important;
+        stroke: url(#gradient-1) !important;
+      }''')
+
+
     db = get_db()
     all_data = db.execute(
         'SELECT p.id, glucose, activity, info, custom_date, created, stat, author_id'
@@ -39,34 +70,40 @@ def charts():
         ' WHERE p.author_id = ?'
         ' ORDER BY created DESC', (g.user['id'],)
     ).fetchall()
-    #print(all_data[0][0])
+    # print(all_data[0][0])
     tab = pd.read_sql('SELECT p.id, glucose, activity, info, custom_date, created, stat, author_id'
-        ' FROM data p JOIN user u ON p.author_id = u.id'
-        ' ORDER BY created DESC', db)
-    df = pd.DataFrame(all_data, columns=['id', 'glucose',' activity', 'info', 'custom_date','created', 'stat', 'author_id'])
-    #print(df)
-    chart_data = df.filter(['glucose','custom_date'], axis=1)
-    #chart_data['custom_date'] = pd.to_datetime(chart_data['custom_date']).dt.time
-    ch=chart_data.to_numpy()
-    #chart_data['glucose'] = chart_data['glucose'].astype('int32')
-    #print(type(chart_data['custom_date'][0]))
-    #print(type(chart_data['glucose'][0]))
-    #print(chart_data['custom_date'][0])
-    #print(chart_data)
-    #print([(x[0],x[1]) for x in ch])
+                      ' FROM data p JOIN user u ON p.author_id = u.id'
+                      ' ORDER BY created DESC', db)
+    df = pd.DataFrame(all_data,
+                      columns=['id', 'glucose', ' activity', 'info', 'custom_date', 'created', 'stat', 'author_id'])
+    # print(df)
+    chart_data = df.filter(['glucose', 'custom_date'], axis=1)
+    chart_data.sort_values(by='custom_date', ascending=False, inplace=True)
+
+    # chart_data['custom_date'] = pd.to_datetime(chart_data['custom_date']).dt.time
+    #ch = chart_data.to_numpy()
+    # chart_data['glucose'] = chart_data['glucose'].astype('int32')
+    # print(type(chart_data['custom_date'][0]))
+    # print(type(chart_data['glucose'][0]))
+    # print(chart_data['custom_date'][0])
+    # print(chart_data)
+    # print([(x[0],x[1]) for x in ch])
     bar_chart = pygal.DateTimeLine(
-    x_label_rotation=35, x_labels_major_every=3,truncate_label=-1,
-    x_value_formatter=lambda dt: dt.strftime('%d, %b %Y at %H:%M:%S'))
-    #print([(type(x)) for x in chart_data.T.items()])
-    #[print(x[1][0],x[1][1]) for x in chart_data.T.items()]
-    #print([(x[1][0]) for x in chart_data.T.items()])
+        #config,
+        #interpolate='cubic',
+        dots_size = 0.5,
+        #fill=True,
+        stroke_style={'width': 5},
+        x_label_rotation=35, x_labels_major_every=3, truncate_label=-1, max_scale=10, range=(50, 300),
+        x_value_formatter=lambda dt: dt.strftime('%d, %b %Y at %H:%M:%S'))
+    # print([(type(x)) for x in chart_data.T.items()])
+    # [print(x[1][0],x[1][1]) for x in chart_data.T.items()]
+    # print([(x[1][0]) for x in chart_data.T.items()])
     bar_chart.x_labels = [(x[1][1].date()) for x in chart_data.T.items()]
-    bar_chart.add("Glucose",[(x[1][1],x[1][0]) for x in chart_data.T.items()])
-    #bar_chart = pygal.StackedBar()
-    #bar_chart.add('Fibonacci', [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55])
-    #bar_chart.add('Padovan', [1, 1, 1, 2, 2, 3, 4, 5, 7, 9, 12])
+    bar_chart.add("Glucose", [(x[1][1], x[1][0]) for x in chart_data.T.items()])
+
     chart = bar_chart.render_data_uri()
-    #bar_chart.render()
+    # bar_chart.render()
     return render_template('data/charts.html', chart=chart)
 
 
@@ -88,7 +125,7 @@ def files():
 def create():
     if request.method == 'POST' and 'file' in request.files:
         file = request.files['file']
-        #files.save(file)
+        # files.save(file)
         db = get_db()
         cur = db.execute(
             'INSERT INTO file (author_id, name)'
@@ -97,11 +134,11 @@ def create():
             (g.user['id'], file.filename)
         )
         file_id = cur.fetchone()[0]
-        #print(cur)
-        #print(next(cur))
-        #print(cur.fetchone()[0])
-        #file_id = f.fetchall()
-        #print(file_id)
+        # print(cur)
+        # print(next(cur))
+        # print(cur.fetchone()[0])
+        # file_id = f.fetchall()
+        # print(file_id)
         db.commit()
 
         df = pd.read_excel(file)
@@ -111,7 +148,7 @@ def create():
         df['file_id'] = [file_id] * df.shape[0]
         df.fillna("", inplace=True)
 
-        df = df.drop(columns = ['ID', 'Date', 'Time'])
+        df = df.drop(columns=['ID', 'Date', 'Time'])
 
         df.to_sql(name='data', con=db, if_exists='append', index=False)
         db.commit()
@@ -222,18 +259,19 @@ def update(id):
 @bp.route('/<int:id>/delete', methods=('POST',))
 @login_required
 def delete(id):
-    #print('id:')
+    # print('id:')
     get_single_data(id)
     db = get_db()
     db.execute('DELETE FROM data WHERE id = ?', (id,))
     db.commit()
     return redirect(url_for('data.all'))
 
+
 @bp.route('/<int:id>/delete_file', methods=('POST',))
 @login_required
 def delete_file(id):
-    #print('id:')
-    #get_single_data(id)
+    # print('id:')
+    # get_single_data(id)
     db = get_db()
     db.execute('DELETE FROM file WHERE id = ?', (id,))
     db.execute('DELETE FROM data WHERE file_id = ?', (id,))
