@@ -29,9 +29,9 @@ def all():
     ).fetchall()
     return render_template('data/all.html', all_data=all_data)
 
-@bp.route('/charts/')
+@bp.route('/charts')
 @login_required
-def plot():
+def charts():
     db = get_db()
     all_data = db.execute(
         'SELECT p.id, glucose, activity, info, custom_date, created, stat, author_id'
@@ -44,10 +44,27 @@ def plot():
         ' FROM data p JOIN user u ON p.author_id = u.id'
         ' ORDER BY created DESC', db)
     df = pd.DataFrame(all_data, columns=['id', 'glucose',' activity', 'info', 'custom_date','created', 'stat', 'author_id'])
-    print(df)
-    bar_chart = pygal.StackedBar()
-    bar_chart.add('Fibonacci', [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55])
-    bar_chart.add('Padovan', [1, 1, 1, 2, 2, 3, 4, 5, 7, 9, 12])
+    #print(df)
+    chart_data = df.filter(['glucose','custom_date'], axis=1)
+    #chart_data['custom_date'] = pd.to_datetime(chart_data['custom_date']).dt.time
+    ch=chart_data.to_numpy()
+    #chart_data['glucose'] = chart_data['glucose'].astype('int32')
+    #print(type(chart_data['custom_date'][0]))
+    #print(type(chart_data['glucose'][0]))
+    #print(chart_data['custom_date'][0])
+    #print(chart_data)
+    #print([(x[0],x[1]) for x in ch])
+    bar_chart = pygal.DateTimeLine(
+    x_label_rotation=35, x_labels_major_every=3,truncate_label=-1,
+    x_value_formatter=lambda dt: dt.strftime('%d, %b %Y at %H:%M:%S'))
+    #print([(type(x)) for x in chart_data.T.items()])
+    #[print(x[1][0],x[1][1]) for x in chart_data.T.items()]
+    #print([(x[1][0]) for x in chart_data.T.items()])
+    bar_chart.x_labels = [(x[1][1].date()) for x in chart_data.T.items()]
+    bar_chart.add("Glucose",[(x[1][1],x[1][0]) for x in chart_data.T.items()])
+    #bar_chart = pygal.StackedBar()
+    #bar_chart.add('Fibonacci', [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55])
+    #bar_chart.add('Padovan', [1, 1, 1, 2, 2, 3, 4, 5, 7, 9, 12])
     chart = bar_chart.render_data_uri()
     #bar_chart.render()
     return render_template('data/charts.html', chart=chart)
