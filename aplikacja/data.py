@@ -11,6 +11,7 @@ from bokeh.plotting import figure
 from bokeh.models import ColumnDataSource, HoverTool, Select
 from bokeh.models import CustomJS, DatePicker
 import random
+from datetime import date
 
 import pygal
 from aplikacja import files
@@ -47,61 +48,35 @@ def graph():
         ' WHERE p.author_id = ?'
         ' ORDER BY created DESC', (g.user['id'],)
     ).fetchall()
-    # print(all_data[0][0])
-    tab = pd.read_sql('SELECT p.id, glucose, activity, info, custom_date, created, stat, author_id'
-                      ' FROM data p JOIN user u ON p.author_id = u.id'
-                      ' ORDER BY created DESC', db)
     df = pd.DataFrame(all_data,
                       columns=['id', 'glucose', ' activity', 'info', 'custom_date', 'created', 'stat', 'author_id'])
     # print(df)
-    chart_data = df.filter(['glucose', 'custom_date'], axis=1)
-    chart_data.sort_values(by='custom_date', ascending=False, inplace=True)
+    df = df.filter(['glucose', 'custom_date'], axis=1)
+    df.sort_values(by='custom_date', ascending=False, inplace=True)
+    today = date.today()
+    choosen_date=today
+    chart_data = df.loc[(df['custom_date'] >= str(today)+' 00:00:00')
+                             & (df['custom_date'] < str(today) +' 23:59:59')]
 
     if request.method == 'POST':
         choosen_date = request.form['date']
-        chart_data = chart_data.loc[(chart_data['custom_date'] >= choosen_date+' 00:00:00')
-                             & (chart_data['custom_date'] < choosen_date+' 23:59:59')
+        chart_data = df.loc[(df['custom_date'] >= choosen_date+' 00:00:00')
+                             & (df['custom_date'] < choosen_date+' 23:59:59')
         ]
 
 
-    chart_data_1 = chart_data[:100]
-    chart_data_2 = chart_data[100:]
+    #chart_data_1 = chart_data[:100]
+    #chart_data_2 = chart_data[100:]
     #print(chart_data_1)
     #print(chart_data_2)
     source = ColumnDataSource(chart_data)
-    source2 = ColumnDataSource(chart_data_2)
 
-    p1 = figure(height=350, sizing_mode="stretch_width")
 
-    TOOLTIPS = [
-        ("index", "@glucose"),
-        ("desc", "@custom_date{%F}"),
-    ]
     hover_tool = HoverTool(
         tooltips=[("index", "@glucose"),
         ("desc", "@custom_date{%T}")], mode='vline', formatters={"@custom_date": "datetime"}
     )
-    p1.circle(
-        [i for i in range(10)],
-        [random.randint(1, 50) for j in range(10)],
-        size=20,
-        color="navy",
-        alpha=0.5
-    )
 
-    # Second Chart - Line Plot
-    language = ['Python', 'JavaScript', 'C++', 'C#', 'Java', 'Golang']
-    popularity = [85, 91, 63, 58, 80, 77]
-
-    p2 = figure(
-        x_range=language,
-        height=350,
-        title="Popularity",
-    )
-    p2.vbar(x=language, top=popularity, width=0.5)
-    p2.xgrid.grid_line_color = None
-    p2.y_range.start = 0
-    # Third Chart - Line Plot
     p3 = figure(height=350, sizing_mode="stretch_width", x_axis_type="datetime")
     p3.add_tools(hover_tool)
     p3.line(
@@ -111,106 +86,16 @@ def graph():
         alpha=0.5
     )
 
-
-
-
-    callback = CustomJS(args=dict(source=source2), code="""
-        console.log(source);
-        console.table(source, ["glucose"]);
-        console.log('date_picker: value=' + this.value, this.toString())
-    """)
-
-    date_picker = DatePicker(title='Select date', value="2019-09-20", min_date="2012-08-01", max_date="2019-10-30")
-    date_picker.js_on_change("value", callback)
-    script5, div5 = components(date_picker)
-
-
-
-    script1, div1 = components(p1)
-    script2, div2 = components(p2)
-    script3, div3 = components(p3)
+    script, div = components(p3)
 
     return render_template(
         'data/graph.html',
-        script=[script1, script2, script3],
-        div=[div1, div2, div3],
+        script=[script],
+        div=[div],
+        date=choosen_date
     )
 
 
-@bp.route('/charts')
-@login_required
-def charts():
-    config = pygal.Config()
-    config.style = pygal.style.DefaultStyle
-    config.defs.append('''
-      <linearGradient id="gradient-0" x1="0" x2="0" y1="0" y2="1">
-        <stop offset="0%" stop-color="#f71505" />
-        <stop offset="64%" stop-color="#f7e305" />
-        <stop offset="80%" stop-color="#0aed02" />
-        <stop offset="92%" stop-color="#f7e305" />
-        <stop offset="100%" stop-color="#f71505" />
-      </linearGradient>
-    ''')
-    config.defs.append('''
-      <linearGradient id="gradient-1" x1="0" x2="0" y1="0" y2="1">
-        <stop offset="0%" stop-color="#b6e354" />
-        <stop offset="100%" stop-color="#8cedff" />
-      </linearGradient>
-    ''')
-    config.css.append('''inline:
-      .color-0 {
-        fill: url(#gradient-0) !important;
-        stroke: url(#gradient-0) !important;
-      }''')
-    config.css.append('''inline:
-      .color-1 {
-        fill: url(#gradient-1) !important;
-        stroke: url(#gradient-1) !important;
-      }''')
-
-    db = get_db()
-    all_data = db.execute(
-        'SELECT p.id, glucose, activity, info, custom_date, created, stat, author_id'
-        ' FROM data p JOIN user u ON p.author_id = u.id'
-        ' WHERE p.author_id = ?'
-        ' ORDER BY created DESC', (g.user['id'],)
-    ).fetchall()
-    # print(all_data[0][0])
-    tab = pd.read_sql('SELECT p.id, glucose, activity, info, custom_date, created, stat, author_id'
-                      ' FROM data p JOIN user u ON p.author_id = u.id'
-                      ' ORDER BY created DESC', db)
-    df = pd.DataFrame(all_data,
-                      columns=['id', 'glucose', ' activity', 'info', 'custom_date', 'created', 'stat', 'author_id'])
-    # print(df)
-    chart_data = df.filter(['glucose', 'custom_date'], axis=1)
-    chart_data.sort_values(by='custom_date', ascending=False, inplace=True)
-
-    # chart_data['custom_date'] = pd.to_datetime(chart_data['custom_date']).dt.time
-    # ch = chart_data.to_numpy()
-    # chart_data['glucose'] = chart_data['glucose'].astype('int32')
-    # print(type(chart_data['custom_date'][0]))
-    # print(type(chart_data['glucose'][0]))
-    # print(chart_data['custom_date'][0])
-    # print(chart_data)
-    # print([(x[0],x[1]) for x in ch])
-    bar_chart = pygal.DateTimeLine(
-        # config,
-        # interpolate='cubic',
-        dots_size=0.5,
-        # fill=True,
-        stroke_style={'width': 5},
-        x_label_rotation=35, x_labels_major_every=3, truncate_label=-1, max_scale=10, range=(50, 300),
-        x_value_formatter=lambda dt: dt.strftime('%d, %b %Y at %H:%M:%S'))
-    # print([(type(x)) for x in chart_data.T.items()])
-    # [print(x[1][0],x[1][1]) for x in chart_data.T.items()]
-    # print([(x[1][0]) for x in chart_data.T.items()])
-    bar_chart.x_labels = [(x[1][1].date()) for x in chart_data.T.items()]
-    # bar_chart.x_labels = ["00:00","12:00"]
-    bar_chart.add("Glucose", [(x[1][1], x[1][0]) for x in chart_data.T.items()])
-
-    chart = bar_chart.render_data_uri()
-    # bar_chart.render()
-    return render_template('data/charts.html', chart=chart)
 
 
 @bp.route('/files')
