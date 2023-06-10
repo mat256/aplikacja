@@ -8,7 +8,8 @@ from aplikacja.db import get_db
 
 from bokeh.embed import components
 from bokeh.plotting import figure
-from bokeh.models import ColumnDataSource, HoverTool
+from bokeh.models import ColumnDataSource, HoverTool, Select
+from bokeh.models import CustomJS, DatePicker
 import random
 
 import pygal
@@ -36,7 +37,7 @@ def all():
     return render_template('data/all.html', all_data=all_data)
 
 
-@bp.route('/graph')
+@bp.route('/graph', methods=('GET', 'POST'))
 @login_required
 def graph():
     db = get_db()
@@ -55,7 +56,20 @@ def graph():
     # print(df)
     chart_data = df.filter(['glucose', 'custom_date'], axis=1)
     chart_data.sort_values(by='custom_date', ascending=False, inplace=True)
+
+    if request.method == 'POST':
+        choosen_date = request.form['date']
+        chart_data = chart_data.loc[(chart_data['custom_date'] >= choosen_date+' 00:00:00')
+                             & (chart_data['custom_date'] < choosen_date+' 23:59:59')
+        ]
+
+
+    chart_data_1 = chart_data[:100]
+    chart_data_2 = chart_data[100:]
+    #print(chart_data_1)
+    #print(chart_data_2)
     source = ColumnDataSource(chart_data)
+    source2 = ColumnDataSource(chart_data_2)
 
     p1 = figure(height=350, sizing_mode="stretch_width")
 
@@ -87,7 +101,6 @@ def graph():
     p2.vbar(x=language, top=popularity, width=0.5)
     p2.xgrid.grid_line_color = None
     p2.y_range.start = 0
-
     # Third Chart - Line Plot
     p3 = figure(height=350, sizing_mode="stretch_width", x_axis_type="datetime")
     p3.add_tools(hover_tool)
@@ -97,6 +110,21 @@ def graph():
         color="olive",
         alpha=0.5
     )
+
+
+
+
+    callback = CustomJS(args=dict(source=source2), code="""
+        console.log(source);
+        console.table(source, ["glucose"]);
+        console.log('date_picker: value=' + this.value, this.toString())
+    """)
+
+    date_picker = DatePicker(title='Select date', value="2019-09-20", min_date="2012-08-01", max_date="2019-10-30")
+    date_picker.js_on_change("value", callback)
+    script5, div5 = components(date_picker)
+
+
 
     script1, div1 = components(p1)
     script2, div2 = components(p2)
