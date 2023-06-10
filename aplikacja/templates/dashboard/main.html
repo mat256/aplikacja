@@ -1,0 +1,31 @@
+{% extends 'layout.html' %}
+
+{% block header %}
+<h1>{% block title %}History{% endblock %}</h1>
+{% if g.user %}
+<a class="action" href="{{ url_for('data.create') }}">New</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row d-flex h-100">
+        <div class="col-6 col-lg-4">
+            <h4 class="text-center">Statistic</h4>
+            {{ div[3] | safe }}
+            {{ script[3] | safe }}
+
+        </div>
+
+        <div class="col-12 col-lg-8">
+            <h4 class="text-center">Line Chart</h4>
+            {{ div[2] | safe }}
+            {{ script[2] | safe }}
+
+        </div>
+
+    </div>
+</div>
+<script>
+</script>
+{% endblock %}
