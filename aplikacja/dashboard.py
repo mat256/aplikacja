@@ -24,8 +24,8 @@ import os
 
 bp = Blueprint('dashboard', __name__, url_prefix='/dashboard')
 
-def create_avg_data():
-    db = get_db()
+def create_avg_data(df):
+    """  db = get_db()
     all_data = db.execute(
         'SELECT p.id, glucose, activity, info, custom_date, created, stat, author_id'
         ' FROM data p JOIN user u ON p.author_id = u.id'
@@ -36,7 +36,7 @@ def create_avg_data():
     df = pd.DataFrame(all_data,
                       columns=['id', 'glucose', ' activity', 'info', 'custom_date', 'created', 'stat', 'author_id'])
     # print(df)
-    df = df.filter(['glucose', 'custom_date'], axis=1)
+    df = df.filter(['glucose', 'custom_date'], axis=1)"""
     #print(df)
     #new=df.groupby(pd.Grouper(key='custom_date', axis=0, freq='15min', sort=True)).mean()
     #new = df.groupby(df["custom_date"].dt.hour)["glucose"].mean()
@@ -68,7 +68,6 @@ def create_avg_data():
 @bp.route('/')
 @login_required
 def dashboard():
-    create_avg_data()
     db = get_db()
     all_data = db.execute(
         'SELECT p.id, glucose, activity, info, custom_date, created, stat, author_id'
@@ -82,8 +81,10 @@ def dashboard():
     # print(df)
     chart_data = df.filter(['glucose', 'custom_date'], axis=1)
     chart_data.sort_values(by='custom_date', ascending=False, inplace=True)
-    source = ColumnDataSource(create_avg_data())
+    source = ColumnDataSource(create_avg_data(df))
     source2 = ColumnDataSource(chart_data)
+
+
 
 
     hover_tool = HoverTool(
@@ -134,6 +135,83 @@ def dashboard():
     #print(div4)
     return render_template(
         'dashboard/main.html',
-        script=[script1, script2],
-        div=[div1, div2],
+        script=[script1],
+        div=[div1],
+    )
+
+
+@bp.route('/glucose')
+@login_required
+def glucose():
+    db = get_db()
+    all_data = db.execute(
+        'SELECT DISTINCT p.id, glucose, activity, info, custom_date, created, stat, p.author_id, f.name'
+        ' FROM data p JOIN user u ON p.author_id = u.id JOIN file f ON u.id = f.author_id'
+        ' WHERE p.author_id = ?'
+        ' ORDER BY created DESC', (g.user['id'],)
+    ).fetchall()
+    # print(all_data[0][0])
+    df = pd.DataFrame(all_data,
+                      columns=['id', 'glucose', ' activity', 'info', 'custom_date', 'created', 'stat', 'author_id', 'name'])
+
+    #df['name'] = df['name'].astype('string')
+    #print(df.dtypes)
+
+    #chart_data = df.filter(['glucose', 'custom_date'], axis=1)
+    #chart_data=df
+    df = df.drop_duplicates(subset=['id'])
+    chart_data = df.filter(['glucose', 'custom_date','author_id'], axis=1)
+    chart_data.sort_values(by='custom_date', ascending=False, inplace=True)
+    #chart_data['name'] = chart_data['name'].astype('string')
+    #print(chart_data.dtypes)
+    #print(chart_data.to_string())
+
+    #print(chart_data.shape)
+    source2 = ColumnDataSource(chart_data)
+
+    hover_tool = HoverTool(
+        tooltips=[("Glucose", "@glucose"),
+                  ("Time", "@time{%T}")], mode='vline', formatters={"@time": "datetime"}
+    )
+
+
+    """super_low_box = BoxAnnotation(top=60, fill_alpha=0.1, fill_color='bisque')
+    low_box = BoxAnnotation(bottom=60, top=75, fill_alpha=0.1, fill_color='cornsilk')
+    mid_box = BoxAnnotation(bottom=75, top=140, fill_alpha=0.1, fill_color='honeydew')
+    high_box = BoxAnnotation(bottom=140, top=180, fill_alpha=0.1, fill_color='cornsilk')
+    super_high_box = BoxAnnotation(bottom=180, fill_alpha=0.1, fill_color='bisque')
+    p3.add_layout(super_low_box)
+    p3.add_layout(low_box)
+    p3.add_layout(mid_box)
+    p3.add_layout(high_box)
+    p3.add_layout(super_high_box)"""
+
+    # p3.xaxis[0].formatter = DatetimeTickFormatter(months="%b %Y")
+
+
+
+    formatter = HTMLTemplateFormatter()
+
+    columns = [
+        TableColumn(field='glucose', title='glucose'),
+        TableColumn(field='custom_date', title='custom_date', formatter=DateFormatter(format="%m/%d/%Y %H:%M:%S")),
+        #TableColumn(field='author_id', title='author_id'),
+        #TableColumn(field='stat', title='stat')
+    ]
+
+    myTable = DataTable(source=source2, columns=columns, autosize_mode='fit_viewport',
+                        reorderable = False
+                        )
+
+
+    # show(myTable)
+    # print(myTable)
+    # print(components(myTable))
+    script, div = components(myTable)
+    # print(div3)
+    # print(div4)
+    return render_template(
+        'dashboard/glucose.html',
+        script=[script],
+        div=[div],
     )
