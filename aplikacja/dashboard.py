@@ -9,6 +9,7 @@ from aplikacja.db import get_db
 from bokeh.embed import components
 from bokeh.plotting import figure
 from bokeh.models import ColumnDataSource, HoverTool, TableColumn, DataTable, DateFormatter,HTMLTemplateFormatter,DatetimeTickFormatter,BoxAnnotation, Toggle
+from bokeh.models.widgets import DataTable, StringFormatter, TableColumn
 from bokeh.io import show
 
 import random
@@ -145,7 +146,7 @@ def dashboard():
 def glucose():
     db = get_db()
     all_data = db.execute(
-        'SELECT DISTINCT p.id, glucose, activity, info, custom_date, created, stat, p.author_id, f.name'
+        'SELECT DISTINCT p.id, glucose, activity, info, custom_date, created, stat, f.author_id, f.name'
         ' FROM data p JOIN user u ON p.author_id = u.id JOIN file f ON u.id = f.author_id'
         ' WHERE p.author_id = ?'
         ' ORDER BY created DESC', (g.user['id'],)
@@ -160,7 +161,8 @@ def glucose():
     #chart_data = df.filter(['glucose', 'custom_date'], axis=1)
     #chart_data=df
     df = df.drop_duplicates(subset=['id'])
-    chart_data = df.filter(['glucose', 'custom_date','author_id'], axis=1)
+    chart_data = df.filter(['glucose', 'custom_date','name', 'author_id'], axis=1)
+    chart_data.insert(2, "info", ["inf" for x in range(df.shape[0])], True)
     chart_data.sort_values(by='custom_date', ascending=False, inplace=True)
     #chart_data['name'] = chart_data['name'].astype('string')
     #print(chart_data.dtypes)
@@ -193,16 +195,19 @@ def glucose():
     formatter = HTMLTemplateFormatter()
 
     columns = [
+        TableColumn(field='info', title='info'),
         TableColumn(field='glucose', title='glucose'),
-        TableColumn(field='custom_date', title='custom_date', formatter=DateFormatter(format="%m/%d/%Y %H:%M:%S")),
-        #TableColumn(field='author_id', title='author_id'),
-        #TableColumn(field='stat', title='stat')
+        #TableColumn(field='custom_date', title='custom_date', formatter=DateFormatter(format="%m/%d/%Y %H:%M:%S")),
+        TableColumn(field='author_id', title='author_id'),
+        #TableColumn(field='stat', title='stat'),
+        #TableColumn(field='name', title='name'),
+
+
     ]
 
-    myTable = DataTable(source=source2, columns=columns, autosize_mode='fit_viewport',
+    myTable = DataTable(source=source2, columns=columns, autosize_mode='fit_columns',
                         reorderable = False
                         )
-
 
     # show(myTable)
     # print(myTable)
@@ -214,4 +219,5 @@ def glucose():
         'dashboard/glucose.html',
         script=[script],
         div=[div],
+        data = all_data,
     )

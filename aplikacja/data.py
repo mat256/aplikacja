@@ -122,7 +122,9 @@ def create():
             'INSERT INTO file (author_id, name)'
             ' VALUES (?, ?)'
             ' RETURNING id,name',
-            (g.user['id'], file.filename)
+            (g.user['id'],
+             file.filename
+             )
         )
         file_id = cur.fetchone()[0]
         # print(cur)
