@@ -33,6 +33,7 @@
                     <th>Glucose</th>
                     <th>Time</th>
                     <th>Source</th>
+                    <th>Options</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -41,6 +42,8 @@
                     <td>{{ single.glucose }}</td>
                     <td>{{ single.custom_date }}</td>
                     <td>{{ single.name }}</td>
+                    <td><a class="btn btn-secondary btn-sm" href="{{ url_for('data.update', id=single['id']) }}"
+                                   type="button">Edit</a></td>
                 </tr>
                 {% endfor %}
                 </tbody>
@@ -63,7 +66,7 @@
     $(document).ready(function () {
       $('#data').DataTable();
     });
-    $('#data').dataTable({searching: false, "dom": '<<t>ip>', "pageLength": 20,'columnDefs': [
+    $('#data').dataTable({searching: false, "dom": '<"row">t<"col-lg-6 text-center justify-content-md-center"p>', "pageLength": 20,'columnDefs': [
     {
         "targets": "_all",
         "className": "text-center"

@@ -85,7 +85,6 @@ def graph():
         color="olive",
         alpha=0.5
     )
-
     script, div = components(p3)
 
     return render_template(

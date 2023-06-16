@@ -84,6 +84,10 @@ def dashboard():
     chart_data.sort_values(by='custom_date', ascending=False, inplace=True)
     source = ColumnDataSource(create_avg_data(df))
     source2 = ColumnDataSource(chart_data)
+    avg_g = int(df['glucose'].mean())
+    proc_over = int(len(df[df["glucose"]>=180])/df.shape[0]*100)
+    stat = [avg_g,proc_over]
+
 
 
 
@@ -138,6 +142,7 @@ def dashboard():
         'dashboard/main.html',
         script=[script1],
         div=[div1],
+        stat=stat,
     )
 
 
@@ -161,7 +166,7 @@ def glucose():
     #chart_data = df.filter(['glucose', 'custom_date'], axis=1)
     #chart_data=df
     df = df.drop_duplicates(subset=['id'])
-    chart_data = df.filter(['glucose', 'custom_date','name', 'author_id'], axis=1)
+    chart_data = df.filter(['id','glucose', 'custom_date','name', 'author_id'], axis=1)
     chart_data.insert(2, "info", ["inf" for x in range(df.shape[0])], True)
     chart_data.sort_values(by='custom_date', ascending=False, inplace=True)
     #chart_data['name'] = chart_data['name'].astype('string')

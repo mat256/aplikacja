@@ -11,21 +11,40 @@
 <div class="container">
     <div class="row d-flex h-100">
         <div class="col-6 col-lg-4">
-            <h4 class="text-center">Statistic</h4>
-            {{ div[1] | safe }}
-            {{ script[1] | safe }}
+            <div class="card" style="border-radius: 1rem;">
+                <div class="card-header">
+                    Statistic
+                </div>
+                <div class="card-body">
+                    <p class="stat1">Average glucose&#58;  {{ stat[0] }}</p>
+                    <p class="stat2">Time over 180&#58;  {{ stat[1] }}&#37;</p>
+                </div>
+            </div>
+            <p></p>
+            <a class="btn btn-info btn-block" href="{{ url_for('data.graph') }}" role="button">Single day graph</a>
+            <p></p>
+            <div class="card" style="border-radius: 1rem;">
+                <div class="card-header">
+                    User data
+                </div>
+                <div class="card-body">
+                    <a class="btn btn-info" href="{{ url_for('dashboard.glucose') }}" role="button">Glucose</a>
+                    <a class="btn btn-info" href="{{ url_for('data.files') }}" role="button">Files</a>
+                </div>
+            </div>
 
         </div>
         <div class="col-12 col-lg-8">
             <div class="card" style="border-radius: 1rem;">
                 <div class="card-header">
-                    Average glucose
+                    Average glucose:
                 </div>
                 <div class="card-body">
                     {{ div[0] | safe }}
                     {{ script[0] | safe }}
                 </div>
             </div>
+
 
 
         </div>

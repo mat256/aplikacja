@@ -22,6 +22,21 @@ CREATE TABLE data (
   FOREIGN KEY (file_id) REFERENCES file (id)
 );
 
+CREATE TABLE insulin (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  author_id INTEGER NOT NULL,
+  custom_date TIMESTAMP NOT NULL,
+  created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  amount INTEGER NOT NULL,
+  type TEXT DEFAULT 'short',
+  period INTEGER,
+  from_file INTEGER DEFAULT 0 NOT NULL,
+  file_id INTEGER,
+  FOREIGN KEY (author_id) REFERENCES user (id)
+  FOREIGN KEY (file_id) REFERENCES file (id)
+);
+
+
 CREATE TABLE file (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   author_id INTEGER NOT NULL,
