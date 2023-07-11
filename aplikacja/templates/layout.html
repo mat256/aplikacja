@@ -43,19 +43,19 @@
             <div class="navbar-collapse collapse dual-collapse2">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}"> Home </a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('data.all') }}"> Data </a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('data.glucose.all') }}"> Data </a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard.dashboard') }}"> Dashboard </a>
                     </li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('data.graph') }}"> Graph </a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('data.create') }}"> Add entry </a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('data.glucose.graph') }}"> Graph </a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('data.glucose.create') }}"> Add entry </a></li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="{{ url_for('data.all') }}" id="navbarDropdownMenuLink"
+                        <a class="nav-link dropdown-toggle" href="{{ url_for('data.glucose.all') }}" id="navbarDropdownMenuLink"
                            data-toggle="dropdown"
                            aria-haspopup="true" aria-expanded="false">
                             Data
                         </a>
                         <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                            <a class="dropdown-item" href="{{ url_for('data.all') }}">Glucose</a>
+                            <a class="dropdown-item" href="{{ url_for('data.glucose.all') }}">Glucose</a>
                             <a class="dropdown-item" href="{{ url_for('data.files') }}">Files</a>
                         </div>
                     </li>

@@ -24,13 +24,13 @@
         <div class="col-12 col-lg-8">
             <div class="card" style="border-radius: 1rem;">
                 <div class="card-header">
-                    Glucose - history
+                    Insulin - history
                 </div>
                 <div class="card-body" style="padding: 0rem">
                     <table id="data" class="table table-hover table-striped table-sm">
                 <thead>
                 <tr>
-                    <th>Glucose</th>
+                    <th>Amount</th>
                     <th>Time</th>
                     <th>Source</th>
                     <th>Options</th>
@@ -39,10 +39,10 @@
                 <tbody>
                 {% for single in data %}
                 <tr>
-                    <td>{{ single.glucose }}</td>
+                    <td>{{ single.amount }}</td>
                     <td>{{ single.custom_date }}</td>
                     <td>{{ single.name }}</td>
-                    <td><a class="btn btn-secondary btn-sm" href="{{ url_for('data.glucose.update', id=single['id']) }}"
+                    <td><a class="btn btn-secondary btn-sm" href="{{ url_for('data.update', id=single['id']) }}"
                                    type="button">Edit</a></td>
                 </tr>
                 {% endfor %}

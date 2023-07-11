@@ -1,0 +1,63 @@
+{% extends 'layout.html' %}
+
+{% block header %}
+<h1>{% block title %}History{% endblock %}</h1>
+{% if g.user %}
+<a class="action" href="{{ url_for('data.create') }}">New</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-2 h-100">
+    <div class="row d-flex justify-content-center align-items-center h-100">
+
+        <div id='tab' class="card shadow-2-strong px-3 py-1 w-50" style="border-radius: 1rem;">
+            {% for data in all_data %}
+            <article class="post">
+                <div class="row align-items-center">
+                    <div class="col-sm border-right">
+                        <header>
+                            <div id='pos' class="row d-flex justify-content-around align-items-center bg-{{ data['stat'] }}" >
+                                <h3>{{ data['glucose'] }}</h3>
+
+                            </div>
+
+
+                            {% if g.user['id'] == data['author_id'] %}
+
+                            {% endif %}
+
+                        </header>
+                    </div>
+                    <div class="col-sm">
+                        <p class="date">Date&#58; {{ data['custom_date'].strftime('%Y-%m-%d %H:%M:%S')}}</p>
+                        <p class="date_org">Date&#58; {{ data['created'].strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                        <p class="activity">Activity&#58; {{ data['activity'] }}</p>
+                        <p class="info">Info&#58; {{ data['info'] }}</p>
+                        <a class="btn btn-secondary btn-sm" href="{{ url_for('data.glucose.update', id=data['id']) }}"
+                                   type="button">Edit</a>
+                    </div>
+                </div>
+            </article>
+            {% if not loop.last %}
+            <hr>
+            {% endif %}
+            {% endfor %}
+        </div>
+
+    </div>
+</div>
+<script>
+    $('#pos').each(function () {
+    //let value = this.children[2].innerHTML;
+
+    // omit dollar signs and commas with replace and return a float
+    //value = parseFloat(value.replace(/\$|,/g, ''));
+
+    // compare values and adjust styling
+    //value > 90000000.50 ? this.style.backgroundColor = 'lightgreen' : '';
+    //value < 10000000.75 ? this.style.backgroundColor = 'salmon' : '';
+    this.style.backgroundColor = 'salmon'
+});
+</script>
+{% endblock %}

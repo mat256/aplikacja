@@ -1,7 +1,7 @@
 {% extends 'layout.html' %}
 
 {% block header %}
-<h1>{% block title %}Edit {{ data['glucose'] }}{% endblock %}</h1>
+<h1>{% block title %}Edit {{ data['amount'] }}{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
@@ -18,19 +18,19 @@
                     <h3 class="mb-5">Update entry</h3>
 
                     <div class="form-outline mb-4">
-                        <input name="glucose" id="glucose" class="form-control form-control-lg"
-                               value="{{ request.form['glucose']  or data['glucose'] }}" required/>
-                        <label class="form-label" for="glucose">Glucose</label>
+                        <input name="amount" id="amount" class="form-control form-control-lg"
+                               value="{{ request.form['amount']  or data['amount'] }}" required/>
+                        <label class="form-label" for="amount">Amount</label>
                     </div>
                     <div class="form-outline mb-4">
-                        <input name="activity" id="activity" class="form-control form-control-lg"
-                               value="{{ request.form['activity'] or data['activity']}}"/>
-                        <label class="form-label" for="activity">Activity</label>
+                        <input name="period" id="period" class="form-control form-control-lg"
+                               value="{{ request.form['period'] or data['period']}}"/>
+                        <label class="form-label" for="period">Period</label>
                     </div>
                     <div class="form-outline mb-4">
-                        <input name="info" id="info" class="form-control form-control-lg"
-                               value="{{ request.form['info'] or data['info']}}"/>
-                        <label class="form-label" for="info">Info</label>
+                        <input name="type" id="type" class="form-control form-control-lg"
+                               value="{{ request.form['type'] or data['type']}}"/>
+                        <label class="form-label" for="type">Type</label>
                     </div>
 
                     <button class="btn btn-primary btn-lg btn-block" type="submit" value="Save">Save</button>
@@ -38,7 +38,7 @@
 
                 </form>
                 <hr>
-                <form action="{{ url_for('data.delete', id=data['id']) }}" method="post">
+                <form action="{{ url_for('data.insulin.delete', id=data['id']) }}" method="post">
                     <input class="btn btn-danger btn-lg btn-block" type="submit" value="Delete"
                     >
                 </form>

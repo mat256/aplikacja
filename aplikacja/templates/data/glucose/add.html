@@ -16,22 +16,22 @@
                     <form method="post">
                         <div class="card-body p-5 text-center">
 
-                            <h3 class="mb-5">Add insulin entry</h3>
+                            <h3 class="mb-5">Add entry</h3>
 
                             <div class="form-outline mb-4">
-                                <input name="amount" id="amount" class="form-control form-control-lg"
-                                       value="{{ request.form['amount'] }}" required/>
-                                <label class="form-label" for="amount">Amount</label>
+                                <input name="glucose" id="glucose" class="form-control form-control-lg"
+                                       value="{{ request.form['glucose'] }}" required/>
+                                <label class="form-label" for="glucose">Glucose</label>
                             </div>
                             <div class="form-outline mb-4">
-                                <input name="period" id="period" class="form-control form-control-lg"
-                                       value="{{ request.form['period'] }}"/>
-                                <label class="form-label" for="period">Period</label>
+                                <input name="activity" id="activity" class="form-control form-control-lg"
+                                       value="{{ request.form['activity'] }}"/>
+                                <label class="form-label" for="activity">Activity</label>
                             </div>
                             <div class="form-outline mb-4">
-                                <input name="type" id="type" class="form-control form-control-lg"
-                                       value="{{ request.form['type'] }}"/>
-                                <label class="form-label" for="type">Type</label>
+                                <input name="info" id="info" class="form-control form-control-lg"
+                                       value="{{ request.form['info'] }}"/>
+                                <label class="form-label" for="info">Info</label>
                             </div>
 
                             <div class="form-outline mb-4">
@@ -46,7 +46,7 @@
                 </div>
 
                 <div class="col-sm">
-                    <form method="POST" enctype="multipart/form-data" action="{{ url_for('data.add_insulin_data') }}">
+                    <form method="POST" enctype="multipart/form-data" action="{{ url_for('data.glucose.create') }}">
                         <div class="card-body p-5 text-center">
                             <h3 class="mb-5">Or upload file</h3>
                             <div class="input-group">

@@ -2,9 +2,6 @@
 
 {% block header %}
 <h1>{% block title %}History{% endblock %}</h1>
-{% if g.user %}
-<a class="action" href="{{ url_for('data.create') }}">New</a>
-{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -21,7 +18,7 @@
                 </div>
             </div>
             <p></p>
-            <a class="btn btn-info btn-block" href="{{ url_for('data.graph') }}" role="button">Single day graph</a>
+            <a class="btn btn-info btn-block" href="{{ url_for('data.glucose.graph') }}" role="button">Single day graph</a>
             <p></p>
             <div class="card" style="border-radius: 1rem;">
                 <div class="card-header">
