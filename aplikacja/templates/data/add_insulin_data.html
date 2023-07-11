@@ -1,0 +1,125 @@
+{% extends 'layout.html' %}
+
+{% block header %}
+<h1>{% block title %}New data{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5 h-100">
+    <div class="row d-flex justify-content-center align-items-center h-100">
+
+        <div class="card shadow-2-strong" style="border-radius: 1rem;">
+            <div class="row">
+
+
+                <div class="col-sm border-right">
+                    <form method="post">
+                        <div class="card-body p-5 text-center">
+
+                            <h3 class="mb-5">Add insulin entry</h3>
+
+                            <div class="form-outline mb-4">
+                                <input name="amount" id="amount" class="form-control form-control-lg"
+                                       value="{{ request.form['amount'] }}" required/>
+                                <label class="form-label" for="amount">Amount</label>
+                            </div>
+                            <div class="form-outline mb-4">
+                                <input name="period" id="period" class="form-control form-control-lg"
+                                       value="{{ request.form['period'] }}"/>
+                                <label class="form-label" for="period">Period</label>
+                            </div>
+                            <div class="form-outline mb-4">
+                                <input name="type" id="type" class="form-control form-control-lg"
+                                       value="{{ request.form['type'] }}"/>
+                                <label class="form-label" for="type">Type</label>
+                            </div>
+
+                            <div class="form-outline mb-4">
+
+                                <input name="date" id="date" class="form-control form-control-lg"
+                                       value="{{ request.form['date'] }}" placeholder="DD/MM/YYYY" type="text"/>
+                                <label class="form-label" for="date">Date</label>
+                            </div>
+                            <button class="btn btn-primary btn-lg btn-block" type="submit" value="Save">Save</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="col-sm">
+                    <form method="POST" enctype="multipart/form-data" action="{{ url_for('data.add_insulin_data') }}">
+                        <div class="card-body p-5 text-center">
+                            <h3 class="mb-5">Or upload file</h3>
+                            <div class="input-group">
+
+                                <div class="form-outline mb-4 text-left">
+
+                                    <input type="file" class="custom-file-input" id="customFileInput" name="file"
+                                           aria-describedby="customFileInput">
+
+                                    <label class="custom-file-label" for="customFileInput">Select file</label>
+
+                                </div>
+
+
+                                <button class="btn btn-primary btn-lg btn-block" type="submit"
+                                        id="customFileInputButton">Upload
+                                </button>
+
+
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+
+            </div>
+        </div>
+
+
+    </div>
+    <script>
+     $(document).ready(function(){
+      var date = new Date();
+      var today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+      var date_input=$('input[name="date"]');
+      var container=$('.bootstrap-iso form').length>0 ? $('.bootstrap-iso form').parent() : "body";
+      var options={
+        format: 'yyyy-mm-dd',
+        container: container,
+        todayHighlight: true,
+        autoclose: true,
+      };
+      date_input.datepicker(options);
+
+      $( '#date' ).datepicker( 'setDate', today );
+
+
+    });
+    document.querySelector('.custom-file-input').addEventListener('change', function (e) {
+
+    var name = document.getElementById("customFileInput").files[0].name;
+
+    var nextSibling = e.target.nextElementSibling
+
+    nextSibling.innerText = name
+
+  })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </script>
+
+
+    {% endblock %}

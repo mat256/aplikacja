@@ -151,24 +151,24 @@ def dashboard():
 def glucose():
     db = get_db()
     all_data = db.execute(
-        'SELECT DISTINCT p.id, glucose, activity, info, custom_date, created, stat, f.author_id, f.name'
-        ' FROM data p JOIN user u ON p.author_id = u.id JOIN file f ON u.id = f.author_id'
+        'SELECT p.id, glucose, activity, info, custom_date, created, stat, f.author_id, f.name'
+        ' FROM data p JOIN user u ON p.author_id = u.id JOIN file f ON p.file_id = f.id'
         ' WHERE p.author_id = ?'
         ' ORDER BY created DESC', (g.user['id'],)
     ).fetchall()
-    # print(all_data[0][0])
+    #print(all_data[0][0])
     df = pd.DataFrame(all_data,
                       columns=['id', 'glucose', ' activity', 'info', 'custom_date', 'created', 'stat', 'author_id', 'name'])
 
     #df['name'] = df['name'].astype('string')
     #print(df.dtypes)
-
+    #print(df)
     #chart_data = df.filter(['glucose', 'custom_date'], axis=1)
     #chart_data=df
     df = df.drop_duplicates(subset=['id'])
     chart_data = df.filter(['id','glucose', 'custom_date','name', 'author_id'], axis=1)
     chart_data.insert(2, "info", ["inf" for x in range(df.shape[0])], True)
-    chart_data.sort_values(by='custom_date', ascending=False, inplace=True)
+    chart_data.sort_values(by='custom_date', ascending=True, inplace=True)
     #chart_data['name'] = chart_data['name'].astype('string')
     #print(chart_data.dtypes)
     #print(chart_data.to_string())

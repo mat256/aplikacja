@@ -172,6 +172,67 @@ def create():
     return render_template('data/create.html')
 
 
+@bp.route('/add_insulin_data', methods=('GET', 'POST'))
+@login_required
+def add_insulin_data():
+    if request.method == 'POST' and 'file' in request.files:
+        file = request.files['file']
+        # files.save(file)
+        db = get_db()
+        cur = db.execute(
+            'INSERT INTO file (author_id, name)'
+            ' VALUES (?, ?)'
+            ' RETURNING id,name',
+            (g.user['id'],
+             file.filename
+             )
+        )
+        file_id = cur.fetchone()[0]
+        # print(cur)
+        # print(next(cur))
+        # print(cur.fetchone()[0])
+        # file_id = f.fetchall()
+        # print(file_id)
+        db.commit()
+
+        df = pd.read_excel(file)
+        df['author_id'] = [g.user['id']] * df.shape[0]
+        df['custom_date'] = df['Date']
+        df['from_file'] = [1] * df.shape[0]
+        df['file_id'] = [file_id] * df.shape[0]
+        df.fillna("", inplace=True)
+
+        df = df.drop(columns=['ID', 'Date'])
+
+        df.to_sql(name='insulin', con=db, if_exists='append', index=False)
+        db.commit()
+
+        return redirect(url_for('dashboard.dashboard'))
+
+    if request.method == 'POST':
+        amount = request.form['amount']
+        period = request.form['period']
+        type = request.form['type']
+        custom_date = request.form['date']
+        error = None
+
+        if not amount:
+            error = 'Insulin amount is required.'
+
+        if error is not None:
+            flash(error)
+        else:
+            db = get_db()
+            db.execute(
+                'INSERT INTO insulin (amount, period, type, custom_date, author_id)'
+                ' VALUES (?, ?, ?, ?, ?)',
+                (amount, period, type, custom_date + ' 00:00:00', g.user['id'])
+            )
+            db.commit()
+            return redirect(url_for('dashboard.dashboard'))
+
+    return render_template('data/add_insulin_data.html')
+
 """
 @bp.route('/upload', methods=('GET', 'POST'))
 @login_required
