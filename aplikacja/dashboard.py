@@ -2,7 +2,7 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for
 )
 from werkzeug.exceptions import abort
-
+from math import pi
 from aplikacja.auth import login_required
 from aplikacja.db import get_db
 
@@ -10,6 +10,7 @@ from bokeh.embed import components
 from bokeh.plotting import figure
 from bokeh.models import ColumnDataSource, HoverTool, TableColumn, DataTable, DateFormatter,HTMLTemplateFormatter,DatetimeTickFormatter,BoxAnnotation, Toggle
 from bokeh.models.widgets import DataTable, StringFormatter, TableColumn
+from bokeh.transform import cumsum
 from bokeh.io import show
 
 import random
@@ -80,7 +81,10 @@ def dashboard():
     df = pd.DataFrame(all_data,
                       columns=['id', 'glucose', ' activity', 'info', 'custom_date', 'created', 'stat', 'author_id'])
     # print(df)
-    ratio = (df < 1.0).sum()
+    #ratio = (df < 1.0).sum()
+    ratio = df['glucose'].value_counts(bins = [0,70, 120,180,500])
+    num_of_values = df.shape[0]
+
     chart_data = df.filter(['glucose', 'custom_date'], axis=1)
     chart_data.sort_values(by='custom_date', ascending=False, inplace=True)
     source = ColumnDataSource(create_avg_data(df))
@@ -88,9 +92,27 @@ def dashboard():
     avg_g = int(df['glucose'].mean())
     proc_over = int(len(df[df["glucose"]>=180])/df.shape[0]*100)
     stat = [avg_g,proc_over]
+    #print(ratio.index)
+    #print(ratio.sum())
 
+    values = [x/num_of_values for x in ratio]
+    ratio_proc=pd.DataFrame()
+    ratio_proc['range'] = ['>180', '120-180', '70-120','<70']
+    ratio_proc['value'] = pd.Series(values)*100
+    ratio_proc['value']=ratio_proc['value'].astype(int)
+    ratio_proc['angle'] = pd.Series(values) * 2 * pi
+    ratio_proc['color'] = pd.Series(['lightcoral','moccasin','palegreen','paleturquoise'])
+    p = figure(sizing_mode="scale_width", toolbar_location=None,
+               outline_line_width=0 ,tools="hover", tooltips="@range: @value%")
 
+    p.wedge(x=0, y=1, radius=0.9,
+            start_angle=cumsum('angle', include_zero=True), end_angle=cumsum('angle'),
+            line_width=0,fill_color='color', source=ratio_proc)
+    p.axis.axis_label = None
+    p.axis.visible = False
+    p.grid.grid_line_color = None
 
+    script2, div2 = components(p)
 
 
     hover_tool = HoverTool(
@@ -136,13 +158,13 @@ def dashboard():
     #show(myTable)
     #print(myTable)
     #print(components(myTable))
-    script2, div2 = components(myTable)
+    #script2, div2 = components(myTable)
     #print(div3)
     #print(div4)
     return render_template(
         'dashboard/main.html',
-        script=[script1],
-        div=[div1],
+        script=[script1,script2],
+        div=[div1,div2],
         stat=stat,
     )
 

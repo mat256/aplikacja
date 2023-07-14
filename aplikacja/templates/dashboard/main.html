@@ -18,6 +18,16 @@
                 </div>
             </div>
             <p></p>
+            <div class="card" style="border-radius: 1rem;">
+                <div class="card-header">
+                    Glucose range ratio:
+                </div>
+                <div class="card-body">
+                    {{ div[1] | safe }}
+                    {{ script[1] | safe }}
+                </div>
+            </div>
+            <p></p>
             <a class="btn btn-info btn-block" href="{{ url_for('data.glucose.graph') }}" role="button">Single day graph</a>
             <p></p>
             <div class="card" style="border-radius: 1rem;">
