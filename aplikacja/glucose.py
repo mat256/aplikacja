@@ -30,12 +30,12 @@ bp = Blueprint('glucose', __name__, url_prefix='/glucose')
 def all():
     db = get_db()
     all_data = db.execute(
-        'SELECT p.id, glucose, activity, info, custom_date, created, stat, author_id, username'
-        ' FROM data p JOIN user u ON p.author_id = u.id'
+        'SELECT p.id, glucose, activity, info, custom_date, created, stat, f.author_id, f.name'
+        ' FROM data p JOIN user u ON p.author_id = u.id JOIN file f ON p.file_id = f.id'
         ' WHERE p.author_id = ?'
         ' ORDER BY created DESC', (g.user['id'],)
     ).fetchall()
-    return render_template('data/glucose/all.html', all_data=all_data)
+    return render_template('data/glucose/all.html', data=all_data)
 
 
 @bp.route('/graph', methods=('GET', 'POST'))

@@ -24,9 +24,12 @@
                 <div class="card-header">
                     User data
                 </div>
-                <div class="card-body">
+                <div class="card-body text-center">
+                    <div class="d-flex justify-content-around">
                     <a class="btn btn-info" href="{{ url_for('dashboard.glucose') }}" role="button">Glucose</a>
+                    <a class="btn btn-info" href="{{ url_for('data.insulin.all') }}" role="button">Insulin</a>
                     <a class="btn btn-info" href="{{ url_for('data.files') }}" role="button">Files</a>
+                        </div>
                 </div>
             </div>
 

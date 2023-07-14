@@ -1,63 +1,94 @@
 {% extends 'layout.html' %}
 
 {% block header %}
-<h1>{% block title %}History{% endblock %}</h1>
-{% if g.user %}
-<a class="action" href="{{ url_for('data.create') }}">New</a>
-{% endif %}
+<h1>{% block title %}Glocose{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
-<div class="container py-2 h-100">
-    <div class="row d-flex justify-content-center align-items-center h-100">
-
-        <div id='tab' class="card shadow-2-strong px-3 py-1 w-50" style="border-radius: 1rem;">
-            {% for data in all_data %}
-            <article class="post">
-                <div class="row align-items-center">
-                    <div class="col-sm border-right">
-                        <header>
-                            <div id='pos' class="row d-flex justify-content-around align-items-center bg-{{ data['stat'] }}" >
-                                <h3>{{ data['glucose'] }}</h3>
-
-                            </div>
-
-
-                            {% if g.user['id'] == data['author_id'] %}
-
-                            {% endif %}
-
-                        </header>
-                    </div>
-                    <div class="col-sm">
-                        <p class="date">Date&#58; {{ data['custom_date'].strftime('%Y-%m-%d %H:%M:%S')}}</p>
-                        <p class="date_org">Date&#58; {{ data['created'].strftime('%Y-%m-%d %H:%M:%S') }}</p>
-                        <p class="activity">Activity&#58; {{ data['activity'] }}</p>
-                        <p class="info">Info&#58; {{ data['info'] }}</p>
-                        <a class="btn btn-secondary btn-sm" href="{{ url_for('data.glucose.update', id=data['id']) }}"
-                                   type="button">Edit</a>
-                    </div>
+<div class="container">
+    <div class="row d-flex h-100 justify-content-md-center">
+        <div class="col-12 col-lg-8">
+            <div class="card" style="border-radius: 1rem;">
+                <div class="card-header">
+                    Glucose - history
                 </div>
-            </article>
-            {% if not loop.last %}
-            <hr>
-            {% endif %}
-            {% endfor %}
+                <div class="card-body" style="padding: 0rem">
+                    <table id="data" class="table table-hover table-striped table-sm">
+                        <thead class="thead-dark">
+                        <tr>
+                            <th>Glucose</th>
+                            <th>Time</th>
+                            <th>Source</th>
+                            <th>Options</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for single in data %}
+                        <tr>
+                            <td style="vertical-align: middle; ">{{ single.glucose }}</td>
+                            <td style="vertical-align: middle; ">{{ single.custom_date }}</td>
+                            <td style="vertical-align: middle; ">{{ single.name }}</td>
+                            <td>
+
+                                <form action="{{ url_for('data.glucose.delete', id=single['id']) }}" method="post">
+                                    <a class="btn btn-secondary btn-sm"
+                                       href="{{ url_for('data.glucose.update', id=single['id']) }}"
+                                       type="button">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                             fill="currentColor" class="bi bi-pen-fill" viewBox="0 0 16 16">
+                                            <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001z"/>
+                                        </svg>
+                                    </a>
+                                    <button class="btn btn-danger btn-sm" type="submit"
+                                            onclick="return confirm('Are you sure?');">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                             fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                                            <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
+                                        </svg>
+                                    </button>
+                                </form>
+                            </td>
+
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+
         </div>
 
     </div>
+
 </div>
+<script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.js"></script>
+<script type="text/javascript" charset="utf8"
+        src="https://cdn.datatables.net/1.10.25/js/dataTables.bootstrap4.js"></script>
+
 <script>
-    $('#pos').each(function () {
-    //let value = this.children[2].innerHTML;
+    $(document).ready(function () {
+      $('#data').DataTable();
+    });
+    $('#data').dataTable({searching: false, "dom": '<"row">t<"col-lg-6 text-center justify-content-md-center"p>', "pageLength": 20,'columnDefs': [
+    {
+        "targets": "_all",
+        "className": "text-center"
+   }
+ ]
+  });
 
-    // omit dollar signs and commas with replace and return a float
-    //value = parseFloat(value.replace(/\$|,/g, ''));
 
-    // compare values and adjust styling
-    //value > 90000000.50 ? this.style.backgroundColor = 'lightgreen' : '';
-    //value < 10000000.75 ? this.style.backgroundColor = 'salmon' : '';
-    this.style.backgroundColor = 'salmon'
-});
+
+
+
+
+
+
+
+
+
+
 </script>
 {% endblock %}

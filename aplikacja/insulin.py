@@ -30,12 +30,14 @@ bp = Blueprint('insulin', __name__, url_prefix='/insulin')
 def all():
     db = get_db()
     all_data = db.execute(
-        'SELECT p.id, amount, period, type, custom_date, created, author_id'
-        ' FROM insulin p JOIN user u ON p.author_id = u.id'
+        'SELECT p.id, amount, period, type, custom_date, created, f.name'
+        ' FROM insulin p JOIN user u ON p.author_id = u.id JOIN file f ON p.file_id = f.id'
         ' WHERE p.author_id = ?'
         ' ORDER BY created DESC', (g.user['id'],)
     ).fetchall()
-    return render_template('data/insulin/all.html', all_data=all_data)
+    return render_template('data/insulin/all.html', data=all_data)
+
+
 
 """
 @bp.route('/graph', methods=('GET', 'POST'))
@@ -283,7 +285,7 @@ def get_single_data_glucose(id, check_author=True):
 def get_single_data(id, check_author=True):
     s_data = get_db().execute(
         'SELECT p.id, amount, period, type, custom_date, author_id'
-        ' FROM data p JOIN user u ON p.author_id = u.id'
+        ' FROM insulin p JOIN user u ON p.author_id = u.id'
         ' WHERE p.id = ?',
         (id,)
     ).fetchone()
@@ -316,7 +318,7 @@ def update(id):
         else:
             db = get_db()
             db.execute(
-                'UPDATE insulin SET glucose = ?, activity = ?, info = ?'
+                'UPDATE insulin SET amount = ?, period = ?, type = ?'
                 ' WHERE id = ?',
                 (amount, period, type, id)
             )

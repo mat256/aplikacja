@@ -80,6 +80,7 @@ def dashboard():
     df = pd.DataFrame(all_data,
                       columns=['id', 'glucose', ' activity', 'info', 'custom_date', 'created', 'stat', 'author_id'])
     # print(df)
+    ratio = (df < 1.0).sum()
     chart_data = df.filter(['glucose', 'custom_date'], axis=1)
     chart_data.sort_values(by='custom_date', ascending=False, inplace=True)
     source = ColumnDataSource(create_avg_data(df))
