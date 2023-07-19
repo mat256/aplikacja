@@ -2,7 +2,7 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for
 )
 from werkzeug.exceptions import abort
-from datetime import date
+from datetime import date, timedelta
 from math import pi
 from aplikacja.auth import login_required
 from aplikacja.db import get_db
@@ -12,6 +12,7 @@ from bokeh.plotting import figure
 from bokeh.models import ColumnDataSource, HoverTool, TableColumn, DataTable, DateFormatter,HTMLTemplateFormatter,DatetimeTickFormatter,BoxAnnotation, Toggle
 from bokeh.models.widgets import DataTable, StringFormatter, TableColumn
 from bokeh.transform import cumsum
+from bokeh.palettes import Category10_10, Category20
 from bokeh.io import show
 
 import random
@@ -331,23 +332,101 @@ def graph():
 
 
     hover_tool = HoverTool(
-        tooltips=[("index", "@glucose"),
+        tooltips=[("glucose", "@glucose"),
         ("desc", "@custom_date{%T}")], mode='vline', formatters={"@custom_date": "datetime"}
     )
 
-    p3 = figure(height=350, sizing_mode="stretch_width", x_axis_type="datetime")
-    p3.add_tools(hover_tool)
-    p3.line(
+    p = figure(height=450, sizing_mode="stretch_width", x_axis_type="datetime")
+
+    p1=p.line(
         x='custom_date', y='glucose', source=source,
         line_width=2,
         color="olive",
         alpha=0.5
     )
-    p3.circle(x='custom_date', y='val', source=source2, color="navy", alpha=0.5)
-    script, div = components(p3)
+    p.add_tools(HoverTool(
+        renderers=[p1],
+        tooltips=[("glucose", "@glucose"),
+        ("time", "@custom_date{%T}")], mode='vline', formatters={"@custom_date": "datetime"}
+    ))
+    p2=p.circle(x='custom_date', y='val', source=source2, size=10, color="sienna", alpha=0.5)
+
+    p.add_tools(HoverTool(
+        renderers=[p2],
+        tooltips=[("amount", "@amount"),
+                  ("period", "@period"),
+                  ("time", "@custom_date{%T}")], mode='vline', formatters={"@custom_date": "datetime"}
+    ))
+    script, div = components(p)
 
     return render_template(
         'data/glucose/graph.html',
+        script=[script],
+        div=[div],
+        date=choosen_date
+    )
+
+@bp.route('/14-days-graph', methods=('GET', 'POST'))
+@login_required
+def twoWeeksGraph():
+    db = get_db()
+    all_data = db.execute(
+        'SELECT p.id, glucose, activity, info, custom_date, stat, author_id'
+        ' FROM data p JOIN user u ON p.author_id = u.id'
+        ' WHERE p.author_id = ? and custom_date>=date("now","-14 day")'
+        ' ORDER BY created DESC', (g.user['id'],)
+    ).fetchall()
+    df = pd.DataFrame(all_data,
+                      columns=['id', 'glucose', ' activity', 'info', 'custom_date', 'stat', 'author_id'])
+
+    all_data_ins = db.execute(
+        'SELECT p.id, amount, period, type, custom_date, created, f.name'
+        ' FROM insulin p JOIN user u ON p.author_id = u.id JOIN file f ON p.file_id = f.id'
+        ' WHERE p.author_id = ? and custom_date>=date("now","-14 day")'
+        ' ORDER BY created DESC', (g.user['id'],)
+    ).fetchall()
+
+    df_ins = pd.DataFrame(all_data_ins,
+                          columns=['id', 'amount', ' period', 'type', 'custom_date', 'created', 'name'])
+    #print(df)
+    df = df.filter(['glucose', 'custom_date'], axis=1)
+    df.sort_values(by='custom_date', ascending=False, inplace=True)
+
+    df_ins = df_ins.filter(['amount','period','type', 'custom_date'], axis=1)
+    df_ins.sort_values(by='custom_date', ascending=False, inplace=True)
+    df_ins['val']=100
+
+    #print(df_ins)
+    p = figure(height=450, sizing_mode="stretch_width", x_axis_type="datetime")
+    #df['date'] = pd.to_datetime(df["date"].dt.strftime('%Y-%m'))
+    single_days = df.groupby(pd.Grouper(key='custom_date',freq='D'))
+    color = Category10_10.__iter__()
+    for i in single_days:
+        #print(i[0])
+        #print(type(i))
+        single = i[1]
+        single['custom_date'] = pd.to_datetime(single["custom_date"].dt.strftime('%H:%M:%S'))
+        p.line(
+            x='custom_date', y='glucose', source=single,
+            line_width=2,
+            color = next(color),
+            alpha=0.5
+        )
+        #print(i)
+        #print('---')
+
+    p.xaxis[0].formatter = DatetimeTickFormatter(hourmin ="%H:%M")
+
+    hover_tool = HoverTool(
+        tooltips=[("glucose", "@glucose"),
+        ("desc", "@custom_date{%T}")], mode='vline', formatters={"@custom_date": "datetime"}
+    )
+    today = date.today()
+    choosen_date = today
+    script, div = components(p)
+
+    return render_template(
+        'dashboard/14_graph.html',
         script=[script],
         div=[div],
         date=choosen_date

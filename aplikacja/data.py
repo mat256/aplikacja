@@ -53,8 +53,8 @@ def delete_file(id, check_author=True):
     # print('id:')
     # get_single_data(id)
     s_data = get_db().execute(
-        'SELECT p.id'
-        ' FROM files p JOIN user u ON p.author_id = u.id'
+        'SELECT p.id,author_id'
+        ' FROM file p JOIN user u ON p.author_id = u.id'
         ' WHERE p.id = ?',
         (id,)
     ).fetchone()

@@ -140,7 +140,8 @@ def create():
         df['file_id'] = [file_id] * df.shape[0]
         df.fillna("", inplace=True)
 
-        df = df.drop(columns=['ID', 'Date', 'Time'])
+        df = df.drop(columns=['ID', 'Date'])
+        df = df.astype({"Glucose": int})
 
         df.to_sql(name='data', con=db, if_exists='append', index=False)
         db.commit()
