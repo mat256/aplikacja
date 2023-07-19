@@ -2,6 +2,7 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for
 )
 from werkzeug.exceptions import abort
+from datetime import date
 from math import pi
 from aplikacja.auth import login_required
 from aplikacja.db import get_db
@@ -77,10 +78,32 @@ def dashboard():
         ' WHERE p.author_id = ?'
         ' ORDER BY created DESC', (g.user['id'],)
     ).fetchall()
+
     # print(all_data[0][0])
     df = pd.DataFrame(all_data,
                       columns=['id', 'glucose', ' activity', 'info', 'custom_date', 'created', 'stat', 'author_id'])
+
+    all_data_ins = db.execute(
+        'SELECT p.id, amount, period, type, custom_date, created, f.name'
+        ' FROM insulin p JOIN user u ON p.author_id = u.id JOIN file f ON p.file_id = f.id'
+        ' WHERE p.author_id = ?'
+        ' ORDER BY created DESC', (g.user['id'],)
+    ).fetchall()
+
+    df_ins=pd.DataFrame(all_data_ins,
+                      columns=['id', 'amount', ' period', 'type', 'custom_date', 'created', 'name'])
     # print(df)
+
+    doses_per_day = df_ins[['amount','custom_date']].set_index('custom_date').groupby(pd.Grouper(freq='D')).count().mean()
+    #print(data_ins.mean())
+    amount_per_day=df_ins[['amount','custom_date']].groupby(pd.Grouper(key='custom_date',
+                          freq='D')).sum().mean()
+
+    #amount_per_day=float(amount_per_day)
+    amount_per_day = float(amount_per_day.iloc[0])
+    if amount_per_day.is_integer():
+        amount_per_day=int(amount_per_day)
+    #print(s.mean())
     #ratio = (df < 1.0).sum()
     ratio = df['glucose'].value_counts(bins = [0,70, 120,180,500])
     num_of_values = df.shape[0]
@@ -91,7 +114,7 @@ def dashboard():
     source2 = ColumnDataSource(chart_data)
     avg_g = int(df['glucose'].mean())
     proc_over = int(len(df[df["glucose"]>=180])/df.shape[0]*100)
-    stat = [avg_g,proc_over]
+    stat = [avg_g,proc_over,amount_per_day]
     #print(ratio.index)
     #print(ratio.sum())
 
@@ -248,4 +271,84 @@ def glucose():
         script=[script],
         div=[div],
         data = all_data,
+    )
+
+
+@bp.route('/graph', methods=('GET', 'POST'))
+@login_required
+def graph():
+    db = get_db()
+    all_data = db.execute(
+        'SELECT p.id, glucose, activity, info, custom_date, created, stat, author_id'
+        ' FROM data p JOIN user u ON p.author_id = u.id'
+        ' WHERE p.author_id = ?'
+        ' ORDER BY created DESC', (g.user['id'],)
+    ).fetchall()
+    df = pd.DataFrame(all_data,
+                      columns=['id', 'glucose', ' activity', 'info', 'custom_date', 'created', 'stat', 'author_id'])
+
+    all_data_ins = db.execute(
+        'SELECT p.id, amount, period, type, custom_date, created, f.name'
+        ' FROM insulin p JOIN user u ON p.author_id = u.id JOIN file f ON p.file_id = f.id'
+        ' WHERE p.author_id = ?'
+        ' ORDER BY created DESC', (g.user['id'],)
+    ).fetchall()
+
+    df_ins = pd.DataFrame(all_data_ins,
+                          columns=['id', 'amount', ' period', 'type', 'custom_date', 'created', 'name'])
+    # print(df)
+    df = df.filter(['glucose', 'custom_date'], axis=1)
+    df.sort_values(by='custom_date', ascending=False, inplace=True)
+
+    df_ins = df_ins.filter(['amount','period','type', 'custom_date'], axis=1)
+    df_ins.sort_values(by='custom_date', ascending=False, inplace=True)
+    df_ins['val']=100
+
+    #print(df_ins)
+    today = date.today()
+    choosen_date=today
+    chart_data = df.loc[(df['custom_date'] >= str(today)+' 00:00:00')
+                             & (df['custom_date'] < str(today) +' 23:59:59')]
+
+    chart_data_2 = df_ins.loc[(df_ins['custom_date'] >= str(today) + ' 00:00:00')
+                        & (df_ins['custom_date'] < str(today) + ' 23:59:59')]
+
+    if request.method == 'POST':
+        choosen_date = request.form['date']
+        chart_data = df.loc[(df['custom_date'] >= choosen_date+' 00:00:00')
+                             & (df['custom_date'] < choosen_date+' 23:59:59')]
+
+        chart_data_2 = df_ins.loc[(df['custom_date'] >= choosen_date+' 00:00:00')
+                             & (df_ins['custom_date'] < choosen_date+' 23:59:59')]
+
+
+    #chart_data_1 = chart_data[:100]
+    #chart_data_2 = chart_data[100:]
+    #print(chart_data)
+    #print(chart_data_2)
+    source = ColumnDataSource(chart_data)
+    source2 = ColumnDataSource(chart_data_2)
+
+
+    hover_tool = HoverTool(
+        tooltips=[("index", "@glucose"),
+        ("desc", "@custom_date{%T}")], mode='vline', formatters={"@custom_date": "datetime"}
+    )
+
+    p3 = figure(height=350, sizing_mode="stretch_width", x_axis_type="datetime")
+    p3.add_tools(hover_tool)
+    p3.line(
+        x='custom_date', y='glucose', source=source,
+        line_width=2,
+        color="olive",
+        alpha=0.5
+    )
+    p3.circle(x='custom_date', y='val', source=source2, color="navy", alpha=0.5)
+    script, div = components(p3)
+
+    return render_template(
+        'data/glucose/graph.html',
+        script=[script],
+        div=[div],
+        date=choosen_date
     )

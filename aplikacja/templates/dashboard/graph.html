@@ -1,0 +1,71 @@
+{% extends 'layout.html' %}
+
+{% block header %}
+<h1>{% block title %}History{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <div class="row">
+        <div class="col-md-12">
+            <h4 class="text-center">Glucose for {{ date }}</h4>
+            {{ div[0] | safe }}
+            {{ script[0] | safe }}
+        </div>
+    </div>
+    <form method="post">
+        <div class="card-body p-5 text-center">
+            <div class="row justify-content-md-center">
+
+
+                <div class="col-md-3">
+                    <div class="form-outline mb-4">
+
+                        <input name="date" id="date" class="form-control form-control-lg"
+                               value="{{ request.form['date'] }}" placeholder="DD/MM/YYYY" type="text"/>
+                        <label class="form-label" for="date">Date</label>
+                    </div>
+                </div>
+
+                    <div class="col-md-3">
+                        <button class="btn btn-primary btn-lg btn-block" type="submit" value="Save">Go</button>
+                    </div>
+
+            </div>
+        </div>
+    </form>
+</div>
+<script>
+     $(document).ready(function(){
+      var date = new Date();
+      var today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+      var date_input=$('input[name="date"]');
+      var container=$('.bootstrap-iso form').length>0 ? $('.bootstrap-iso form').parent() : "body";
+      var options={
+        format: 'yyyy-mm-dd',
+        container: container,
+        todayHighlight: true,
+        autoclose: true,
+      };
+      date_input.datepicker(options);
+
+      $( '#date' ).datepicker( 'setDate', today );
+
+
+    });
+    document.querySelector('.custom-file-input').addEventListener('change', function (e) {
+
+    var name = document.getElementById("customFileInput").files[0].name;
+
+    var nextSibling = e.target.nextElementSibling
+
+    nextSibling.innerText = name
+
+  })
+
+
+
+</script>
+{% endblock %}
