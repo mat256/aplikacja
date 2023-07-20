@@ -31,7 +31,14 @@
                 </div>
             </div>
             <p></p>
-            <a class="btn btn-info btn-block" href="{{ url_for('data.glucose.graph') }}" role="button">Single day graph</a>
+            <div class="row">
+                <div class="col">
+            <a class="btn btn-info btn-block" href="{{ url_for('data.glucose.graph') }}" role="button">Single day</a>
+                </div>
+                    <div class="col">
+                <a class="btn btn-info btn-block" href="{{ url_for('dashboard.twoWeeksGraph') }}" role="button">Last 14 days</a>
+                    </div>
+            </div>
             <p></p>
             <div class="card" style="border-radius: 1rem;">
                 <div class="card-header">

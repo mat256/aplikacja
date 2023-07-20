@@ -30,6 +30,18 @@
             </div>
 
         </div>
+        <div class="col-12 col-lg-12">
+            <div class="card" style="border-radius: 1rem;">
+                <div class="card-header">
+                    Glucose for last 14 days
+                </div>
+                <div class="card-body">
+                    {{ div[1] | safe }}
+                    {{ script[1] | safe }}
+                </div>
+            </div>
+
+        </div>
     </div>
 </div>
 {% endblock %}

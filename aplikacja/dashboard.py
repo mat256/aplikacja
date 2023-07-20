@@ -6,6 +6,9 @@ from datetime import date, timedelta
 from math import pi
 from aplikacja.auth import login_required
 from aplikacja.db import get_db
+from bokeh.layouts import gridplot
+import datetime
+from bokeh.models import Title
 
 from bokeh.embed import components
 from bokeh.plotting import figure
@@ -366,7 +369,33 @@ def graph():
         date=choosen_date
     )
 
-@bp.route('/14-days-graph', methods=('GET', 'POST'))
+def create_plots(days):
+    plots=[]
+    hover_tool = HoverTool(
+        tooltips=[("glucose", "@glucose"),
+                  ("desc", "@custom_date{%T}")], mode='vline', formatters={"@custom_date": "datetime"}
+    )
+
+
+    for n,i in enumerate(days):
+        a1 = figure(x_axis_type="datetime")
+        a1.line(x='custom_date', y='glucose', source=days[n][1], line_width=3, alpha=0.6)
+        #print(days[n][0])
+        #print(type(days[n][0]))
+        #print(days[n][0]+ pd.Timedelta(hours=5, minutes=10, seconds=3))
+        night_end = days[n][0]+ pd.Timedelta(hours=7)
+        night_start = days[n][0]+ pd.Timedelta(hours=22)
+        green_box1 = BoxAnnotation(right=night_end, fill_color='#009E73', fill_alpha=0.1)
+        green_box2 = BoxAnnotation(left=night_start, fill_color='#009E73', fill_alpha=0.1)
+        a1.xaxis[0].formatter = DatetimeTickFormatter(hourmin="%H:%M")
+        a1.add_layout(green_box1)
+        a1.add_layout(green_box2)
+        a1.add_tools(hover_tool)
+        a1.add_layout(Title(text=str(datetime.datetime.date(days[n][0])), align="center"), "above")
+        plots.append(a1)
+    return plots
+
+@bp.route('/lastweeks', methods=('GET', 'POST'))
 @login_required
 def twoWeeksGraph():
     db = get_db()
@@ -400,12 +429,17 @@ def twoWeeksGraph():
     p = figure(height=450, sizing_mode="stretch_width", x_axis_type="datetime")
     #df['date'] = pd.to_datetime(df["date"].dt.strftime('%Y-%m'))
     single_days = df.groupby(pd.Grouper(key='custom_date',freq='D'))
+    days = [i for i in single_days]
+
+    grid = gridplot(create_plots(days), ncols=2, height=250,sizing_mode="stretch_width")
+
+
     color = Category10_10.__iter__()
     for i in single_days:
         #print(i[0])
         #print(type(i))
         single = i[1]
-        single['custom_date'] = pd.to_datetime(single["custom_date"].dt.strftime('%H:%M:%S'))
+        single.loc[:, 'custom_date'] = pd.to_datetime(single.loc[:, 'custom_date'].dt.strftime('%H:%M:%S'), format="%H:%M:%S")
         p.line(
             x='custom_date', y='glucose', source=single,
             line_width=2,
@@ -414,6 +448,9 @@ def twoWeeksGraph():
         )
         #print(i)
         #print('---')
+    #plots = [figure().line(x='custom_date', y='glucose', source=i[1],line_width=2,alpha=0.5) for i in single_days]
+    #for i in single_days:
+
 
     p.xaxis[0].formatter = DatetimeTickFormatter(hourmin ="%H:%M")
 
@@ -424,10 +461,11 @@ def twoWeeksGraph():
     today = date.today()
     choosen_date = today
     script, div = components(p)
+    script1, div1 = components(grid)
 
     return render_template(
-        'dashboard/14_graph.html',
-        script=[script],
-        div=[div],
+        'dashboard/lastweeks.html',
+        script=[script,script1],
+        div=[div,div1],
         date=choosen_date
     )
