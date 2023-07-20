@@ -83,6 +83,16 @@ def dashboard():
         ' ORDER BY created DESC', (g.user['id'],)
     ).fetchall()
 
+    #print(all_data)
+    if not all_data:
+        #abort(404, f"Entry id {id} doesn't exist.")
+        return render_template(
+            'dashboard/main.html',
+        script=None,
+        div=None,
+        stat=None,)
+
+
     # print(all_data[0][0])
     df = pd.DataFrame(all_data,
                       columns=['id', 'glucose', ' activity', 'info', 'custom_date', 'created', 'stat', 'author_id'])
