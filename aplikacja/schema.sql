@@ -29,7 +29,7 @@ CREATE TABLE insulin (
   created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   amount INTEGER NOT NULL,
   type TEXT DEFAULT 'short',
-  period INTEGER,
+  period INTEGER DEFAULT 0,
   from_file INTEGER DEFAULT 0 NOT NULL,
   file_id INTEGER,
   FOREIGN KEY (author_id) REFERENCES user (id)

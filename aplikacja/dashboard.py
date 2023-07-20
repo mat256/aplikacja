@@ -59,7 +59,7 @@ def create_avg_data(df):
     #print(df1.between_time('00:00:00', '01:00:00')['glucose'].mean())
     timing = [str(x).split()[-1] for x in pd.timedelta_range(start='1 day', end='2 days', freq='15min')]
     new['time']=timing[:-1]
-    new['time'] = new['time'].apply(lambda x: f"2022-06-10 {x}")
+    new['time'] = new['time'].apply(lambda x: f"1900-01-01 {x}")
     new['time'] = pd.to_datetime(new['time'])
     #print(timing)
     new["glucose"] = [df1.between_time(timing[x], timing[x+1])['glucose'].mean() for x in range(len(timing)-1)]
@@ -107,6 +107,10 @@ def dashboard():
     amount_per_day = float(amount_per_day.iloc[0])
     if amount_per_day.is_integer():
         amount_per_day=int(amount_per_day)
+
+    doses_per_day = float(doses_per_day.iloc[0])
+    if doses_per_day.is_integer():
+        doses_per_day = int(doses_per_day)
     #print(s.mean())
     #ratio = (df < 1.0).sum()
     ratio = df['glucose'].value_counts(bins = [0,70, 120,180,500])
@@ -118,7 +122,7 @@ def dashboard():
     source2 = ColumnDataSource(chart_data)
     avg_g = int(df['glucose'].mean())
     proc_over = int(len(df[df["glucose"]>=180])/df.shape[0]*100)
-    stat = [avg_g,proc_over,amount_per_day]
+    stat = [avg_g,proc_over,amount_per_day,doses_per_day]
     #print(ratio.index)
     #print(ratio.sum())
 
@@ -148,7 +152,13 @@ def dashboard():
     )
 
 
-    p3 = figure( sizing_mode="scale_width", x_axis_type="datetime")
+    p3 = figure(height = 400,  sizing_mode="scale_width", x_axis_type="datetime")
+    night_end = pd.Timestamp('1900-01-01T07')  # pd.Timedelta(hours=7)
+    night_start = pd.Timestamp('1900-01-01T22')  # pd.Timedelta(hours=22)
+    green_box1 = BoxAnnotation(right=night_end, fill_color='#009E73', fill_alpha=0.1)
+    green_box2 = BoxAnnotation(left=night_start, fill_color='#009E73', fill_alpha=0.1)
+    p3.add_layout(green_box1)
+    p3.add_layout(green_box2)
 
     p3.add_tools(hover_tool)
     p3.line(
@@ -322,7 +332,7 @@ def graph():
         chart_data = df.loc[(df['custom_date'] >= choosen_date+' 00:00:00')
                              & (df['custom_date'] < choosen_date+' 23:59:59')]
 
-        chart_data_2 = df_ins.loc[(df['custom_date'] >= choosen_date+' 00:00:00')
+        chart_data_2 = df_ins.loc[(df_ins['custom_date'] >= choosen_date+' 00:00:00')
                              & (df_ins['custom_date'] < choosen_date+' 23:59:59')]
 
 
@@ -354,6 +364,7 @@ def graph():
     ))
     p2=p.circle(x='custom_date', y='val', source=source2, size=10, color="sienna", alpha=0.5)
 
+
     p.add_tools(HoverTool(
         renderers=[p2],
         tooltips=[("amount", "@amount"),
@@ -363,7 +374,7 @@ def graph():
     script, div = components(p)
 
     return render_template(
-        'data/glucose/graph.html',
+        'dashboard/graph.html',
         script=[script],
         div=[div],
         date=choosen_date
@@ -373,7 +384,7 @@ def create_plots(days):
     plots=[]
     hover_tool = HoverTool(
         tooltips=[("glucose", "@glucose"),
-                  ("desc", "@custom_date{%T}")], mode='vline', formatters={"@custom_date": "datetime"}
+                  ("time", "@custom_date{%T}")], mode='vline', formatters={"@custom_date": "datetime"}
     )
 
 
@@ -440,7 +451,7 @@ def twoWeeksGraph():
         #print(type(i))
         single = i[1]
         single.loc[:, 'custom_date'] = pd.to_datetime(single.loc[:, 'custom_date'].dt.strftime('%H:%M:%S'), format="%H:%M:%S")
-        p.line(
+        line = p.line(
             x='custom_date', y='glucose', source=single,
             line_width=2,
             color = next(color),
@@ -450,14 +461,23 @@ def twoWeeksGraph():
         #print('---')
     #plots = [figure().line(x='custom_date', y='glucose', source=i[1],line_width=2,alpha=0.5) for i in single_days]
     #for i in single_days:
-
+       #print(i)
+    #print(single_days.first())
+    night_end = pd.Timestamp('1900-01-01T07')#pd.Timedelta(hours=7)
+    night_start = pd.Timestamp('1900-01-01T22')#pd.Timedelta(hours=22)
+    green_box1 = BoxAnnotation(right=night_end, fill_color='#009E73', fill_alpha=0.1)
+    green_box2 = BoxAnnotation(left=night_start, fill_color='#009E73', fill_alpha=0.1)
+    p.add_layout(green_box1)
+    p.add_layout(green_box2)
 
     p.xaxis[0].formatter = DatetimeTickFormatter(hourmin ="%H:%M")
 
     hover_tool = HoverTool(
-        tooltips=[("glucose", "@glucose"),
-        ("desc", "@custom_date{%T}")], mode='vline', formatters={"@custom_date": "datetime"}
+        tooltips=[
+        ("TIme", "@custom_date{%T}")], mode='vline', formatters={"@custom_date": "datetime"}
+        , renderers=[line]
     )
+    p.add_tools(hover_tool)
     today = date.today()
     choosen_date = today
     script, div = components(p)

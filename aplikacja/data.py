@@ -40,7 +40,7 @@ def files():
         ' WHERE p.author_id = ?'
         ' ORDER BY uploaded DESC', (g.user['id'],)
     ).fetchall()
-    return render_template('data/files.html', all_files=all_files)
+    return render_template('data/files.html', data=all_files)
 
 
 

@@ -1,40 +1,85 @@
 {% extends 'layout.html' %}
 
 {% block header %}
-<h1>{% block title %}History{% endblock %}</h1>
-
+<h1>{% block title %}Files{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
-<div class="container py-2 h-100">
-    <div class="row d-flex justify-content-center align-items-center h-100">
+<div class="container">
+    <div class="row d-flex h-100 justify-content-md-center">
+        <div class="col-12 col-lg-8">
+            <div class="card" style="border-radius: 1rem;">
+                <div class="card-header">
+                    Files
+                </div>
+                <div class="card-body" style="padding: 0rem">
+                    <table id="data" class="table table-hover table-striped table-sm">
+                        <thead class="thead-dark">
+                        <tr>
+                            <th>Name</th>
+                            <th>Uploaded</th>
+                            <th>Options</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for single in data %}
+                        <tr>
+                            <td style="vertical-align: middle; ">{{ single.name }}</td>
+                            <td style="vertical-align: middle; ">{{ single.uploaded }}</td>
+                            <td>
 
-        <div class="card shadow-2-strong px-3 py-1" style="border-radius: 1rem;">
-            {% for file in all_files %}
-            <article class="post">
-                <header>
-                    <div class="row d-flex justify-content-around align-items-center">
-                        <h3>{{ file['name'] }}</h3>
-                        <form action="{{ url_for('data.delete_file', id=file['id']) }}" onsubmit="openModal()" method="post">
-                       <input class="btn btn-danger btn-lg btn-block" type="submit" value="Delete">
+                                <form action="{{ url_for('data.delete_file', id=single['id']) }}" method="post">
+
+                                    <button class="btn btn-danger btn-sm" type="submit"
+                                            onclick="return confirm('Are you sure?');">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                             fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                                            <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
+                                        </svg>
+                                    </button>
+                                </form>
+                            </td>
+
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
 
-                        </form>
-
-                    </div>
-
-
-                </header>
-
-                <p class="date_org">Uploaded&#58; {{ file['uploaded'].strftime('%Y-%m-%d %H:%M:%S') }}</p>
-
-            </article>
-            {% if not loop.last %}
-            <hr>
-            {% endif %}
-            {% endfor %}
         </div>
 
     </div>
+
 </div>
+<script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.js"></script>
+<script type="text/javascript" charset="utf8"
+        src="https://cdn.datatables.net/1.10.25/js/dataTables.bootstrap4.js"></script>
+
+<script>
+    $(document).ready(function () {
+      $('#data').DataTable();
+    });
+    $('#data').dataTable({searching: false, "dom": '<"row">t<"col-lg-6 text-center justify-content-md-center"p>', "pageLength": 20,'columnDefs': [
+    {
+        "targets": "_all",
+        "className": "text-center"
+   }
+ ]
+  });
+
+
+
+
+
+
+
+
+
+
+
+
+</script>
 {% endblock %}

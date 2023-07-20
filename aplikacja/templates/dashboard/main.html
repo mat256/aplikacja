@@ -1,11 +1,12 @@
 {% extends 'layout.html' %}
 
 {% block header %}
-<h1>{% block title %}History{% endblock %}</h1>
+<h1>{% block title %}Dashboard{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
 <div class="container">
+    <p></p>
     <div class="row d-flex h-100">
         <div class="col-6 col-lg-4">
             <div class="card" style="border-radius: 1rem;">
@@ -13,17 +14,19 @@
                     Statistic
                 </div>
                 <div class="card-body">
-                    <p class="stat1">Average glucose&#58;  {{ stat[0] }} mg/dl</p>
+                    <p class="stat1">Average glucose&#58; {{ stat[0] }} mg/dl</p>
                     <hr>
-                    <p class="stat2">Time over 180&#58;  {{ stat[1] }} &#37;</p>
+                    <p class="stat2">Time over 180&#58; {{ stat[1] }} &#37;</p>
                     <hr>
-                    <p class="stat2">Insulin per day&#58;  {{ stat[2] }} units</p>
+                    <p class="stat3">Insulin per day&#58; {{ stat[2] }} units</p>
+                    <hr>
+                    <p class="stat4">Insulin doses per day&#58; {{ stat[3] }}</p>
                 </div>
             </div>
             <p></p>
             <div class="card" style="border-radius: 1rem;">
                 <div class="card-header">
-                    Glucose range ratio:
+                    Glucose range ratio
                 </div>
                 <div class="card-body">
                     {{ div[1] | safe }}
@@ -31,46 +34,60 @@
                 </div>
             </div>
             <p></p>
-            <div class="row">
-                <div class="col">
-            <a class="btn btn-info btn-block" href="{{ url_for('data.glucose.graph') }}" role="button">Single day</a>
-                </div>
-                    <div class="col">
-                <a class="btn btn-info btn-block" href="{{ url_for('dashboard.twoWeeksGraph') }}" role="button">Last 14 days</a>
-                    </div>
-            </div>
-            <p></p>
-            <div class="card" style="border-radius: 1rem;">
-                <div class="card-header">
-                    User data
-                </div>
-                <div class="card-body text-center">
-                    <div class="d-flex justify-content-around">
-                    <a class="btn btn-info" href="{{ url_for('dashboard.glucose') }}" role="button">Glucose</a>
-                    <a class="btn btn-info" href="{{ url_for('data.insulin.all') }}" role="button">Insulin</a>
-                    <a class="btn btn-info" href="{{ url_for('data.files') }}" role="button">Files</a>
-                        </div>
-                </div>
-            </div>
+
 
         </div>
         <div class="col-12 col-lg-8">
             <div class="card" style="border-radius: 1rem;">
                 <div class="card-header">
-                    Average glucose:
+                    Average glucose
                 </div>
                 <div class="card-body">
                     {{ div[0] | safe }}
                     {{ script[0] | safe }}
                 </div>
             </div>
+            <p></p>
+            <div class="row">
+                <div class="col">
+                    <div class="card" style="border-radius: 1rem;">
+                        <div class="card-header">
+                            Other graphs
+                        </div>
+                        <div class="card-body text-center">
+                            <div class="d-flex justify-content-around">
+                                <a class="btn btn-info" href="{{ url_for('dashboard.graph') }}"
+                                   role="button">Single day</a>
+                                <a class="btn btn-info" href="{{ url_for('dashboard.twoWeeksGraph') }}"
+                                   role="button">Last 14 days</a>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                    <div class="col">
+                        <div class="card" style="border-radius: 1rem;">
+                            <div class="card-header">
+                                User data
+                            </div>
+                            <div class="card-body text-center">
+                                <div class="d-flex justify-content-around">
+                                    <a class="btn btn-info" href="{{ url_for('dashboard.glucose') }}"
+                                       role="button">Glucose</a>
+                                    <a class="btn btn-info" href="{{ url_for('data.insulin.all') }}"
+                                       role="button">Insulin</a>
+                                    <a class="btn btn-info" href="{{ url_for('data.files') }}" role="button">Files</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
+            </div>
 
 
         </div>
-    </div>
 
-</div>
-<script>
-</script>
-{% endblock %}
+    </div>
+    <script>
+    </script>
+    {% endblock %}
