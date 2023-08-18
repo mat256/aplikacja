@@ -4,5 +4,10 @@ VALUES
   ('other', 'pbkdf2:sha256:50000$kJPKsz6N$d2d4784f1b030a9761f5ccaeeaca413f27f2ecb76d6168407af962ddce849f79');
 
 INSERT INTO data (author_id, custom_date,glucose)
-VALUES
-  (1, '2018-01-01 00:00:00', 180);
+VALUES (1, '2018-01-01 00:00:00', 180);
+
+INSERT INTO insulin (author_id, custom_date, amount, period)
+VALUES (1,'2018-01-01 00:00:00',12, 180);
+
+INSERT INTO file (author_id, name)
+VALUES (1,'file_test');

@@ -35,7 +35,7 @@ def all():
         ' ORDER BY created DESC', (g.user['id'],)
     ).fetchall()
     all_data_not_from_file = db.execute(
-        'SELECT p.id, glucose, activity, info, custom_date, created, stat, "test" as name'
+        'SELECT p.id, glucose, activity, info, custom_date, created, stat, "user input" as name'
         ' FROM data p JOIN user u ON p.author_id = u.id'
         ' WHERE p.author_id = ? AND p.from_file = 0'
         ' ORDER BY created DESC', (g.user['id'],)

@@ -27,13 +27,19 @@ bp = Blueprint('insulin', __name__, url_prefix='/insulin')
 @login_required
 def all():
     db = get_db()
-    all_data = db.execute(
+    all_data_from_file = db.execute(
         'SELECT p.id, amount, period, type, custom_date, created, f.name'
         ' FROM insulin p JOIN user u ON p.author_id = u.id JOIN file f ON p.file_id = f.id'
-        ' WHERE p.author_id = ?'
+        ' WHERE p.author_id = ? AND p.from_file = 1'
         ' ORDER BY created DESC', (g.user['id'],)
     ).fetchall()
-    return render_template('data/insulin/all.html', data=all_data)
+    all_data_not_from_file = db.execute(
+        'SELECT p.id, amount, period, type, custom_date, created, "user input" as name'
+        ' FROM insulin p JOIN user u ON p.author_id = u.id'
+        ' WHERE p.author_id = ? AND p.from_file = 0'
+        ' ORDER BY created DESC', (g.user['id'],)
+    ).fetchall()
+    return render_template('data/insulin/all.html', data=all_data_from_file+all_data_not_from_file)
 
 
 
@@ -220,6 +226,11 @@ def create():
         if not amount:
             error = 'Insulin amount is required.'
 
+        try:
+            float(amount)
+        except:
+            error = 'Insulin amount must be float or integer.'
+
         if error is not None:
             flash(error)
         else:
@@ -310,6 +321,11 @@ def update(id):
 
         if not amount:
             error = 'Insulin amount is required.'
+
+        try:
+            float(amount)
+        except:
+            error = 'Insulin amount must be float or integer.'
 
         if error is not None:
             flash(error)
