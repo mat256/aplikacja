@@ -14,7 +14,6 @@ import random
 from datetime import date
 
 import pygal
-from aplikacja import files
 import pandas as pd
 from pygal.style import DarkStyle, DefaultStyle
 
@@ -29,13 +28,20 @@ bp = Blueprint('glucose', __name__, url_prefix='/glucose')
 @login_required
 def all():
     db = get_db()
-    all_data = db.execute(
+    all_data_from_file = db.execute(
         'SELECT p.id, glucose, activity, info, custom_date, created, stat, f.author_id, f.name'
         ' FROM data p JOIN user u ON p.author_id = u.id JOIN file f ON p.file_id = f.id'
-        ' WHERE p.author_id = ?'
+        ' WHERE p.author_id = ? AND p.from_file = 1'
         ' ORDER BY created DESC', (g.user['id'],)
     ).fetchall()
-    return render_template('data/glucose/all.html', data=all_data)
+    all_data_not_from_file = db.execute(
+        'SELECT p.id, glucose, activity, info, custom_date, created, stat, "test" as name'
+        ' FROM data p JOIN user u ON p.author_id = u.id'
+        ' WHERE p.author_id = ? AND p.from_file = 0'
+        ' ORDER BY created DESC', (g.user['id'],)
+    ).fetchall()
+    return render_template('data/glucose/all.html', data=all_data_from_file + all_data_not_from_file)
+
 
 
 @bp.route('/graph', methods=('GET', 'POST'))
@@ -157,6 +163,9 @@ def create():
 
         if not glucose:
             error = 'Glucose is required.'
+
+        if not glucose.isnumeric():
+            error = 'Glucose must be integer number.'
 
         if error is not None:
             flash(error)
@@ -310,6 +319,9 @@ def update(id):
 
         if not glucose:
             error = 'Glucose is required.'
+
+        if not glucose.isnumeric():
+            error = 'Glucose must be integer number.'
 
         if error is not None:
             flash(error)

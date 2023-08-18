@@ -14,7 +14,6 @@ import random
 from datetime import date
 
 import pygal
-from aplikacja import files
 import pandas as pd
 from pygal.style import DarkStyle, DefaultStyle
 
@@ -22,7 +21,6 @@ import sqlite3
 from flask_uploads import IMAGES, UploadSet, configure_uploads
 import os
 
-#bp_parent = Blueprint('data', __name__, url_prefix='/data')
 bp = Blueprint('insulin', __name__, url_prefix='/insulin')
 
 @bp.route('/all')

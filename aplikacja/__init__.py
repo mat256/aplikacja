@@ -4,8 +4,16 @@ from flask_uploads import DOCUMENTS, DATA, UploadSet, configure_uploads
 
 from flask import Flask, Blueprint
 from flask import render_template
+from . import data
+from . import glucose
+#app.register_blueprint(data.bp)
+
+from . import insulin
 
 files = UploadSet("files", DOCUMENTS)
+
+data.bp.register_blueprint(insulin.bp)
+data.bp.register_blueprint(glucose.bp)
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
@@ -43,15 +51,11 @@ def create_app(test_config=None):
     from . import auth
     app.register_blueprint(auth.bp)
 
-    from . import glucose
-    #app.register_blueprint(data.bp)
 
-    from . import insulin
-    from . import data
+
     #bp = Blueprint('data', __name__, url_prefix='/data')
 
-    data.bp.register_blueprint(insulin.bp)
-    data.bp.register_blueprint(glucose.bp)
+
     app.register_blueprint(data.bp)
     #app.add_url_rule('/', endpoint='index')
 

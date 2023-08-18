@@ -14,7 +14,6 @@ import random
 from datetime import date
 
 import pygal
-from aplikacja import files
 import pandas as pd
 from pygal.style import DarkStyle, DefaultStyle
 
