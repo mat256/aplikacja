@@ -25,6 +25,8 @@ def test_author_required(app, client, auth):
     assert client.post('data/insulin/1/delete').status_code == 403
 
 def test_show_all(client, auth, app):
+    response = client.get('data/insulin/all')
+    assert response.headers["Location"] == "/auth/login"
     auth.login()
     assert client.get('data/insulin/all').status_code == 200
 
@@ -66,12 +68,14 @@ def test_create_validate(client, auth, app):
     auth.login()
     response = client.post('data/insulin/create', data={'amount': 't','period':90,'type':'', 'date': "1900-01-01"})
     assert b'Insulin amount must be float or integer.' in response.data
+
     file_name = "test.txt"
     data = {
         'file': (io.BytesIO(b"some initial text data"), file_name)
     }
     response = client.post('/data/insulin/create', data=data)
     assert b'Wrong file extension!' in response.data
+
     file_name = "test.xlsx"
     data = {
         'file': (io.BytesIO(b"some initial text data"), file_name)

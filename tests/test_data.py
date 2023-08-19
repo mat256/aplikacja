@@ -19,8 +19,14 @@ def test_author_required(app, client, auth):
     # current user can't modify other user's post
     assert client.post('data/1/delete_file').status_code == 403
 
+def test_show_all(client, auth, app):
+    auth.login()
+    assert client.get('data/files').status_code == 200
+
 def test_delete(client, auth, app):
     auth.login()
+    response = client.post('data/3/delete_file')
+    assert b'Entry id 3 doesn&#39;t exist.' in response.data
     response = client.post('data/1/delete_file')
     assert response.headers["Location"] == "/data/files"
 

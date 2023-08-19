@@ -42,8 +42,7 @@ def all():
     ).fetchall()
     return render_template('data/glucose/all.html', data=all_data_from_file + all_data_not_from_file)
 
-
-
+"""
 @bp.route('/graph', methods=('GET', 'POST'))
 @login_required
 def graph():
@@ -60,27 +59,25 @@ def graph():
     df = df.filter(['glucose', 'custom_date'], axis=1)
     df.sort_values(by='custom_date', ascending=False, inplace=True)
     today = date.today()
-    choosen_date=today
-    chart_data = df.loc[(df['custom_date'] >= str(today)+' 00:00:00')
-                             & (df['custom_date'] < str(today) +' 23:59:59')]
+    choosen_date = today
+    chart_data = df.loc[(df['custom_date'] >= str(today) + ' 00:00:00')
+                        & (df['custom_date'] < str(today) + ' 23:59:59')]
 
     if request.method == 'POST':
         choosen_date = request.form['date']
-        chart_data = df.loc[(df['custom_date'] >= choosen_date+' 00:00:00')
-                             & (df['custom_date'] < choosen_date+' 23:59:59')
-        ]
+        chart_data = df.loc[(df['custom_date'] >= choosen_date + ' 00:00:00')
+                            & (df['custom_date'] < choosen_date + ' 23:59:59')
+                            ]
 
-
-    #chart_data_1 = chart_data[:100]
-    #chart_data_2 = chart_data[100:]
-    #print(chart_data_1)
-    #print(chart_data_2)
+    # chart_data_1 = chart_data[:100]
+    # chart_data_2 = chart_data[100:]
+    # print(chart_data_1)
+    # print(chart_data_2)
     source = ColumnDataSource(chart_data)
-
 
     hover_tool = HoverTool(
         tooltips=[("index", "@glucose"),
-        ("desc", "@custom_date{%T}")], mode='vline', formatters={"@custom_date": "datetime"}
+                  ("desc", "@custom_date{%T}")], mode='vline', formatters={"@custom_date": "datetime"}
     )
 
     p3 = figure(height=350, sizing_mode="stretch_width", x_axis_type="datetime")
@@ -99,8 +96,7 @@ def graph():
         div=[div],
         date=choosen_date
     )
-
-
+"""
 
 """
 @bp.route('/files')
@@ -116,45 +112,61 @@ def files():
     return render_template('data/files.html', all_files=all_files)"""
 
 
+def validate_format(file):
+    if not file.filename.endswith('.xlsx'):
+        error = 'Wrong file extension!'
+        flash(error, 'alert alert-danger')
+        return False
+    return True
+
+
 @bp.route('/create', methods=('GET', 'POST'))
 @login_required
 def create():
     if request.method == 'POST' and 'file' in request.files:
+        error = None
         file = request.files['file']
-        # files.save(file)
-        db = get_db()
-        cur = db.execute(
-            'INSERT INTO file (author_id, name)'
-            ' VALUES (?, ?)'
-            ' RETURNING id,name',
-            (g.user['id'],
-             file.filename
-             )
-        )
-        file_id = cur.fetchone()[0]
-        # print(cur)
-        # print(next(cur))
-        # print(cur.fetchone()[0])
-        # file_id = f.fetchall()
-        # print(file_id)
-        db.commit()
+        if validate_format(file):
+            try:
+                df = pd.read_excel(file)
+                df['author_id'] = [g.user['id']] * df.shape[0]
+                df['custom_date'] = df['Date']
+                df['from_file'] = [1] * df.shape[0]
+                df.fillna("", inplace=True)
+                df = df.drop(columns=['ID', 'Date'])
+                df = df.astype({"Glucose": int})
+            except:
+                error = 'Invalid file structure.'
 
-        df = pd.read_excel(file)
-        df['author_id'] = [g.user['id']] * df.shape[0]
-        df['custom_date'] = df['Date']
-        df['from_file'] = [1] * df.shape[0]
-        df['file_id'] = [file_id] * df.shape[0]
-        df.fillna("", inplace=True)
+            if error is not None:
+                flash(error, 'alert alert-danger')
+            else:
 
-        df = df.drop(columns=['ID', 'Date'])
-        df = df.astype({"Glucose": int})
+                db = get_db()
+                cur = db.execute(
+                    'INSERT INTO file (author_id, name)'
+                    ' VALUES (?, ?)'
+                    ' RETURNING id,name',
+                    (g.user['id'],
+                     file.filename
+                     )
+                )
+                file_id = cur.fetchone()[0]
+                # print(cur)
+                # print(next(cur))
+                # print(cur.fetchone()[0])
+                # file_id = f.fetchall()
+                # print(file_id)
+                db.commit()
 
-        df.to_sql(name='data', con=db, if_exists='append', index=False)
-        db.commit()
+                df['file_id'] = [file_id] * df.shape[0]
 
-        return redirect(url_for('data.glucose.all'))
+                df.to_sql(name='data', con=db, if_exists='append', index=False)
+                db.commit()
+                flash('Entry successfully added', 'alert alert-success')
+                return redirect(url_for('data.glucose.all'))
 
-    if request.method == 'POST':
+    if request.method == 'POST' and 'file' not in request.files:
         glucose = request.form['glucose']
         activity = request.form['activity']
         info = request.form['info']
@@ -168,7 +180,7 @@ def create():
             error = 'Glucose must be integer number.'
 
         if error is not None:
-            flash(error)
+            flash(error, 'alert alert-danger')
         else:
             db = get_db()
             db.execute(
@@ -177,9 +189,11 @@ def create():
                 (glucose, activity, info, custom_date + ' 00:00:00', g.user['id'])
             )
             db.commit()
+            flash('Entry successfully added', 'alert alert-success')
             return redirect(url_for('data.glucose.all'))
 
     return render_template('data/glucose/add.html')
+
 
 """
 @bp.route('/insulin/add_insulin_data', methods=('GET', 'POST'))
@@ -289,6 +303,7 @@ def get_single_data(id, check_author=True):
 
     return s_data
 
+
 """def get_single_data_insulin(id, check_author=True):
     s_data = get_db().execute(
         'SELECT p.id, amount, period, type, custom_date, author_id'
@@ -347,6 +362,7 @@ def delete(id):
     db.execute('DELETE FROM data WHERE id = ?', (id,))
     db.commit()
     return redirect(url_for('data.glucose.all'))
+
 
 """
 @bp.route('/<int:id>/delete_file', methods=('POST',))

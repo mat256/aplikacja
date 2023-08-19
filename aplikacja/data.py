@@ -67,5 +67,6 @@ def delete_file(id, check_author=True):
     db = get_db()
     db.execute('DELETE FROM file WHERE id = ?', (id,))
     db.execute('DELETE FROM data WHERE file_id = ?', (id,))
+    db.execute('DELETE FROM insulin WHERE file_id = ?', (id,))
     db.commit()
     return redirect(url_for('data.files'))

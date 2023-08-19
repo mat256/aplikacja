@@ -86,6 +86,7 @@ def dashboard():
     #print(all_data)
     if not all_data:
         #abort(404, f"Entry id {id} doesn't exist.")
+        flash('User needs to upload glucose data.', 'alert alert-danger')
         return render_template(
             'dashboard/main.html',
         script=None,
@@ -98,14 +99,24 @@ def dashboard():
                       columns=['id', 'glucose', ' activity', 'info', 'custom_date', 'created', 'stat', 'author_id'])
 
     all_data_ins = db.execute(
-        'SELECT p.id, amount, period, type, custom_date, created, f.name'
-        ' FROM insulin p JOIN user u ON p.author_id = u.id JOIN file f ON p.file_id = f.id'
+        'SELECT p.id, amount, period, type, custom_date, created'
+        ' FROM insulin p JOIN user u ON p.author_id = u.id'
         ' WHERE p.author_id = ?'
         ' ORDER BY created DESC', (g.user['id'],)
     ).fetchall()
 
+    if not all_data_ins:
+        #abort(404, f"Entry id {id} doesn't exist.")
+        flash('User needs to upload insulin data.', 'alert alert-danger')
+        return render_template(
+            'dashboard/main.html',
+        script=None,
+        div=None,
+        stat=None,)
+
+
     df_ins=pd.DataFrame(all_data_ins,
-                      columns=['id', 'amount', ' period', 'type', 'custom_date', 'created', 'name'])
+                      columns=['id', 'amount', ' period', 'type', 'custom_date', 'created'])
     # print(df)
 
     doses_per_day = df_ins[['amount','custom_date']].set_index('custom_date').groupby(pd.Grouper(freq='D')).count().mean()
@@ -215,7 +226,7 @@ def dashboard():
         stat=stat,
     )
 
-
+"""
 @bp.route('/glucose')
 @login_required
 def glucose():
@@ -250,9 +261,8 @@ def glucose():
         tooltips=[("Glucose", "@glucose"),
                   ("Time", "@time{%T}")], mode='vline', formatters={"@time": "datetime"}
     )
-
-
-    """super_low_box = BoxAnnotation(top=60, fill_alpha=0.1, fill_color='bisque')
+   '''
+    super_low_box = BoxAnnotation(top=60, fill_alpha=0.1, fill_color='bisque')
     low_box = BoxAnnotation(bottom=60, top=75, fill_alpha=0.1, fill_color='cornsilk')
     mid_box = BoxAnnotation(bottom=75, top=140, fill_alpha=0.1, fill_color='honeydew')
     high_box = BoxAnnotation(bottom=140, top=180, fill_alpha=0.1, fill_color='cornsilk')
@@ -261,8 +271,8 @@ def glucose():
     p3.add_layout(low_box)
     p3.add_layout(mid_box)
     p3.add_layout(high_box)
-    p3.add_layout(super_high_box)"""
-
+    p3.add_layout(super_high_box)'''
+    
     # p3.xaxis[0].formatter = DatetimeTickFormatter(months="%b %Y")
 
 
@@ -296,7 +306,7 @@ def glucose():
         div=[div],
         data = all_data,
     )
-
+"""
 
 @bp.route('/graph', methods=('GET', 'POST'))
 @login_required
@@ -430,14 +440,17 @@ def twoWeeksGraph():
                       columns=['id', 'glucose', ' activity', 'info', 'custom_date', 'stat', 'author_id'])
 
     all_data_ins = db.execute(
-        'SELECT p.id, amount, period, type, custom_date, created, f.name'
-        ' FROM insulin p JOIN user u ON p.author_id = u.id JOIN file f ON p.file_id = f.id'
+        'SELECT p.id, amount, period, type, custom_date, created'
+        ' FROM insulin p JOIN user u ON p.author_id = u.id'
         ' WHERE p.author_id = ? and custom_date>=date("now","-14 day")'
         ' ORDER BY created DESC', (g.user['id'],)
     ).fetchall()
 
+    if not all_data or not all_data_ins:
+        return redirect(url_for('dashboard.dashboard'))
+
     df_ins = pd.DataFrame(all_data_ins,
-                          columns=['id', 'amount', ' period', 'type', 'custom_date', 'created', 'name'])
+                          columns=['id', 'amount', ' period', 'type', 'custom_date', 'created'])
     #print(df)
     df = df.filter(['glucose', 'custom_date'], axis=1)
     df.sort_values(by='custom_date', ascending=False, inplace=True)

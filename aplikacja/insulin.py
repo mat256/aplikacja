@@ -177,6 +177,12 @@ def create():
 
     return render_template('data/add.html')"""
 
+def validate_format(file):
+    if not file.filename.endswith('.xlsx'):
+        error = 'Wrong file extension!'
+        flash(error, 'alert alert-danger')
+        return False
+    return True
 
 @bp.route('/create', methods=('GET', 'POST'))
 @login_required
@@ -184,11 +190,7 @@ def create():
     if request.method == 'POST' and 'file' in request.files:
         error = None
         file = request.files['file']
-        if not file.filename.endswith('.xlsx'):
-            error = 'Wrong file extension!'
-            flash(error,'alert alert-danger')
-            # return render_template('data/insulin/add.html')
-        else:
+        if validate_format(file):
 
             # files.save(file)
             db = get_db()
