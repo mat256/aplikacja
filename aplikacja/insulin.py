@@ -23,6 +23,7 @@ import os
 
 bp = Blueprint('insulin', __name__, url_prefix='/insulin')
 
+
 @bp.route('/all')
 @login_required
 def all():
@@ -39,8 +40,7 @@ def all():
         ' WHERE p.author_id = ? AND p.from_file = 0'
         ' ORDER BY created DESC', (g.user['id'],)
     ).fetchall()
-    return render_template('data/insulin/all.html', data=all_data_from_file+all_data_not_from_file)
-
+    return render_template('data/insulin/all.html', data=all_data_from_file + all_data_not_from_file)
 
 
 """
@@ -99,7 +99,6 @@ def graph():
         div=[div],
         date=choosen_date
     )"""
-
 
 """
 
@@ -183,40 +182,52 @@ def create():
 @login_required
 def create():
     if request.method == 'POST' and 'file' in request.files:
+        error = None
         file = request.files['file']
-        # files.save(file)
-        db = get_db()
-        cur = db.execute(
-            'INSERT INTO file (author_id, name)'
-            ' VALUES (?, ?)'
-            ' RETURNING id,name',
-            (g.user['id'],
-             file.filename
-             )
-        )
-        file_id = cur.fetchone()[0]
-        # print(cur)
-        # print(next(cur))
-        # print(cur.fetchone()[0])
-        # file_id = f.fetchall()
-        # print(file_id)
-        db.commit()
+        if not file.filename.endswith('.xlsx'):
+            error = 'Wrong file extension!'
+            flash(error,'alert alert-danger')
+            # return render_template('data/insulin/add.html')
+        else:
 
-        df = pd.read_excel(file)
-        df['author_id'] = [g.user['id']] * df.shape[0]
-        df['custom_date'] = df['Date']
-        df['from_file'] = [1] * df.shape[0]
-        df['file_id'] = [file_id] * df.shape[0]
-        df.fillna("", inplace=True)
+            # files.save(file)
+            db = get_db()
 
-        df = df.drop(columns=['ID', 'Date'])
+            try:
+                df = pd.read_excel(file)
+                df['author_id'] = [g.user['id']] * df.shape[0]
+                df['custom_date'] = df['Date']
+                df['from_file'] = [1] * df.shape[0]
+                df.fillna("", inplace=True)
+                df = df.drop(columns=['ID', 'Date'])
+            except:
+                error = 'Invalid file structure.'
 
-        df.to_sql(name='insulin', con=db, if_exists='append', index=False)
-        db.commit()
+            if error is not None:
+                flash(error,'alert alert-danger')
+            else:
+                cur = db.execute(
+                    'INSERT INTO file (author_id, name)'
+                    ' VALUES (?, ?)'
+                    ' RETURNING id,name',
+                    (g.user['id'],
+                     file.filename
+                     )
+                )
+                file_id = cur.fetchone()[0]
+                # print(cur)
+                # print(next(cur))
+                # print(cur.fetchone()[0])
+                # file_id = f.fetchall()
+                # print(file_id)
+                db.commit()
+                df['file_id'] = [file_id] * df.shape[0]
+                df.to_sql(name='insulin', con=db, if_exists='append', index=False)
+                db.commit()
+                flash('Entry successfully added','alert alert-success')
+                return redirect(url_for('dashboard.dashboard'))
 
-        return redirect(url_for('dashboard.dashboard'))
-
-    if request.method == 'POST':
+    if request.method == 'POST' and 'file' not in request.files:
         amount = request.form['amount']
         period = request.form['period']
         type = request.form['type']
@@ -232,7 +243,7 @@ def create():
             error = 'Insulin amount must be float or integer.'
 
         if error is not None:
-            flash(error)
+            flash(error,'alert alert-danger')
         else:
             db = get_db()
             db.execute(
@@ -241,9 +252,11 @@ def create():
                 (amount, period, type, custom_date + ' 00:00:00', g.user['id'])
             )
             db.commit()
+            flash('Entry successfully added', 'alert alert-success')
             return redirect(url_for('dashboard.dashboard'))
 
     return render_template('data/insulin/add.html')
+
 
 """
 @bp.route('/upload', methods=('GET', 'POST'))
@@ -290,6 +303,7 @@ def get_single_data_glucose(id, check_author=True):
         abort(403)
 
     return s_data"""
+
 
 def get_single_data(id, check_author=True):
     s_data = get_db().execute(
@@ -351,6 +365,7 @@ def delete(id):
     db.execute('DELETE FROM insulin WHERE id = ?', (id,))
     db.commit()
     return redirect(url_for('data.insulin.all'))
+
 
 """
 @bp.route('/<int:id>/delete_file', methods=('POST',))
