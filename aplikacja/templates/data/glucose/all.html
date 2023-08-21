@@ -5,8 +5,8 @@
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="row d-flex h-100 justify-content-md-center">
+<div class="container py-2">
+    <div class="row d-flex justify-content-md-center h-100">
         <div class="col-12 col-lg-8">
             <div class="card" style="border-radius: 1rem;">
                 <div class="card-header">
@@ -16,10 +16,11 @@
                     <table id="data" class="table table-hover table-striped table-sm">
                         <thead class="thead-dark">
                         <tr>
-                            <th>Glucose</th>
-                            <th>Time</th>
-                            <th>Source</th>
-                            <th>Options</th>
+                            <th data-field='Glucose'>Glucose</th>
+                            <th data-field='Time'>Time</th>
+                            <th data-field='Uploaded'>Uploaded</th>
+                            <th data-field='Source'>Source</th>
+                            <th data-field='Options'>Options</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -27,6 +28,7 @@
                         <tr>
                             <td style="vertical-align: middle; ">{{ single.glucose }}</td>
                             <td style="vertical-align: middle; ">{{ single.custom_date }}</td>
+                            <td style="vertical-align: middle; ">{{ single.created }}</td>
                             <td style="vertical-align: middle; ">{{ single.name }}</td>
                             <td>
 
@@ -78,6 +80,7 @@
    }
  ]
   });
+
 
 
 
