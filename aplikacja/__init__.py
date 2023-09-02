@@ -6,6 +6,7 @@ from flask import Flask, Blueprint
 from flask import render_template
 from . import data
 from . import glucose
+from . import personal
 #app.register_blueprint(data.bp)
 
 from . import insulin
@@ -14,6 +15,7 @@ files = UploadSet("files", DOCUMENTS)
 
 data.bp.register_blueprint(insulin.bp)
 data.bp.register_blueprint(glucose.bp)
+data.bp.register_blueprint(personal.bp)
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)

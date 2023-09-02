@@ -9,6 +9,22 @@ CREATE TABLE user (
   password TEXT NOT NULL
 );
 
+CREATE TABLE personal (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  author_id INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  surname TEXT NOT NULL,
+  pesel INTEGER NOT NULL,
+  birth_date TIMESTAMP NOT NULL,
+  day_start TEXT,
+  day_end TEXT,
+  phone INTEGER,
+  email TEXT,
+  adress TEXT,
+  FOREIGN KEY (author_id) REFERENCES user (id)
+);
+
+
 CREATE TABLE data (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   author_id INTEGER NOT NULL,

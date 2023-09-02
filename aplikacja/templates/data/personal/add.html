@@ -1,0 +1,147 @@
+{% extends 'layout.html' %}
+
+{% block header %}
+<h1>{% block title %}New data{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<div class="container py-2 h-100">
+    <div class="row d-flex justify-content-center align-items-center h-100">
+
+        <div class="card shadow-2-strong" style="border-radius: 1rem;">
+            <div class="card-header">
+                Add information
+            </div>
+
+            <div class="col-sm border-right">
+                <form method="post">
+
+                    <div class="card-body text-center">
+
+                        <h5 class="card-title">Personal</h5>
+                        <div class="row justify-content-between">
+                            <div class="col">
+                                <div class="form-outline mb-4">
+                                    <input name="name" id="name" class="form-control form-control-lg"
+                                           value="{{ request.form['name'] }}" required/>
+                                    <label class="form-label" for="name">Name</label>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-outline mb-4">
+                                    <input name="surname" id="surname" class="form-control form-control-lg"
+                                           value="{{ request.form['surname'] }}" required/>
+                                    <label class="form-label" for="surname">Surname</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row justify-content-between">
+                            <div class="col">
+                                <div class="form-outline mb-4">
+                                    <input name="pesel" id="pesel" class="form-control form-control-lg"
+                                           value="{{ request.form['pesel'] }}" required/>
+                                    <label class="form-label" for="pesel">Pesel</label>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-outline mb-4">
+
+                                    <input name="date" id="date" class="form-control form-control-lg"
+                                           value="{{ request.form['date'] }}" placeholder="DD/MM/YYYY" type="text"/>
+                                    <label class="form-label" for="date">Birth date</label>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <h5 class="card-title">Contact</h5>
+                        <div class="row justify-content-between">
+                            <div class="col">
+                                <div class="form-outline mb-4">
+                                    <input name="phone" id="phone" class="form-control form-control-lg"
+                                           value="{{ request.form['phone'] }}"/>
+                                    <label class="form-label" for="phone">Phone number</label>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-outline mb-4">
+                                    <input name="email" id="email" class="form-control form-control-lg"
+                                           value="{{ request.form['email'] }}"/>
+                                    <label class="form-label" for="email">Email</label>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="row justify-content-center">
+                            <div class="col">
+                                <div class="form-outline mb-4">
+                                    <input name="adress" id="adress" class="form-control form-control-lg"
+                                           value="{{ request.form['adress'] }}"/>
+                                    <label class="form-label" for="adress">Adress</label>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <h5 class="card-title">Other</h5>
+                        <div class="row justify-content-between">
+                            <div class="col">
+                                <div class="form-outline mb-4">
+                                    <input type="time" id="day_start" name="day_start"
+                                           class="form-control form-control-lg"
+                                           value="{{ request.form['day_start'] }}">
+                                    <label class="form-label" for="date">Day start</label>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-outline mb-4">
+                                    <input type="time" id="day_end" name="day_end" class="form-control form-control-lg"
+                                           value="{{ request.form['day_end'] }}">
+                                    <label class="form-label" for="date">Day end</label>
+                                </div>
+                            </div>
+
+
+                            <button class="btn btn-primary btn-lg btn-block" type="submit" value="Save">Save</button>
+                        </div>
+                </form>
+            </div>
+
+
+        </div>
+
+
+    </div>
+</div>
+<script>
+$(document).ready(function(){
+      var date = new Date();
+      var today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+      var date_input=$('input[name="date"]');
+      var container=$('.bootstrap-iso form').length>0 ? $('.bootstrap-iso form').parent() : "body";
+      var options={
+        format: 'yyyy-mm-dd',
+        container: container,
+        todayHighlight: true,
+        autoclose: true,
+      };
+      date_input.datepicker(options);
+
+      $( '#date' ).datepicker( 'setDate', today );
+
+
+    });
+    document.getElementById("day_start").defaultValue = "07:00";
+    document.getElementById("day_end").defaultValue = "23:00";
+
+
+
+
+
+
+
+
+
+</script>
+
+
+{% endblock %}

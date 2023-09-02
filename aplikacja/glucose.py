@@ -133,7 +133,9 @@ def create():
                 df['custom_date'] = df['Date']
                 df['from_file'] = [1] * df.shape[0]
                 df.fillna("", inplace=True)
-                df = df.drop(columns=['ID', 'Date'])
+                #print(df)
+                #df = df.drop(columns=['ID', 'Date'])
+                df = df.loc[:, ['Glucose', 'Activity','Info','author_id','custom_date','from_file']]
                 df = df.astype({"Glucose": int})
             except:
                 error = 'Invalid file structure.'
