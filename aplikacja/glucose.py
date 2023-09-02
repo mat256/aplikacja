@@ -341,7 +341,7 @@ def update(id):
             error = 'Glucose must be integer number.'
 
         if error is not None:
-            flash(error)
+            flash(error, 'alert alert-danger')
         else:
             db = get_db()
             db.execute(

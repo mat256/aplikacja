@@ -12,10 +12,11 @@ CREATE TABLE user (
 CREATE TABLE personal (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   author_id INTEGER NOT NULL,
+  user_id INTEGER NOT NULL,
   name TEXT NOT NULL,
   surname TEXT NOT NULL,
   pesel INTEGER NOT NULL,
-  birth_date TIMESTAMP NOT NULL,
+  birth_date DATE NOT NULL,
   day_start TEXT,
   day_end TEXT,
   phone INTEGER,

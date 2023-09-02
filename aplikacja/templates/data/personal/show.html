@@ -1,0 +1,120 @@
+{% extends 'layout.html' %}
+
+{% block header %}
+<h1>{% block title %}New data{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<div class="container py-2 h-100">
+    <div class="row d-flex justify-content-center align-items-center h-100">
+        <div class="col-md-6">
+            <div class="card shadow-2-strong" style="border-radius: 1rem;">
+                <div class="card-header">
+                    User information
+                </div>
+
+                <div class="col-sm border-right">
+
+
+                    <div class="card-body text-center">
+
+                        <h5 class="card-title">Personal</h5>
+                        <div class="row justify-content-between">
+                            <div class="col">
+                                <div class="form-outline mb-4">
+                                    <p class="card-text">Name:</p>
+                                    <h5 class="card-text">{{ data.name }}</h5>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-outline mb-4">
+                                    <p class="card-text">Surname:</p>
+                                    <h5 class="card-text">{{ data.surname }}</h5>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row justify-content-between">
+                            <div class="col">
+                                <div class="form-outline mb-4">
+                                    <p class="card-text">Pesel:</p>
+                                    <h5 class="card-text">{{ data.pesel }}</h5>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-outline mb-4">
+                                    <p class="card-text">Birth date:</p>
+                                    <h5 class="card-text">{{ data.birth_date }}</h5>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-outline mb-4">
+                                    <p class="card-text">Age:</p>
+                                    <h5 class="card-text">{{ age }}</h5>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <h5 class="card-title">Contact</h5>
+                        <div class="row justify-content-between">
+                            <div class="col">
+                                <div class="form-outline mb-4">
+                                    <p class="card-text">Phone:</p>
+                                    <h5 class="card-text">{{ data.phone }}</h5>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-outline mb-4">
+                                    <p class="card-text">Email:</p>
+                                    <h5 class="card-text">{{ data.email }}</h5>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="row justify-content-center">
+                            <div class="col">
+                                <div class="form-outline mb-4">
+                                    <p class="card-text">Adress:</p>
+                                    <h5 class="card-text">{{ data.adress }}</h5>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <h5 class="card-title">Other</h5>
+                        <div class="row justify-content-between">
+                            <div class="col">
+                                <div class="form-outline mb-4">
+                                    <p class="card-text">Day start:</p>
+                                    <h5 class="card-text">{{ data.day_start }}</h5>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-outline mb-4">
+                                    <p class="card-text">Day end:</p>
+                                    <h5 class="card-text">{{ data.day_end }}</h5>
+                                </div>
+                            </div>
+
+
+                        </div>
+                        <div class="row justify-content-between">
+                            <a class="btn btn-secondary btn-lg btn-block"
+                               href="{{ url_for('data.personal.update') }}"
+                               type="button">Edit</a>
+                        </div>
+                    </div>
+
+
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+
+
+</script>
+
+
+{% endblock %}

@@ -10,7 +10,7 @@
 
         <div class="card shadow-2-strong" style="border-radius: 1rem;">
             <div class="card-header">
-                Add information
+                Edit information
             </div>
 
             <div class="col-sm border-right">
@@ -23,14 +23,14 @@
                             <div class="col">
                                 <div class="form-outline mb-4">
                                     <input name="name" id="name" class="form-control form-control-lg"
-                                           value="{{ request.form['name'] }}" required/>
+                                           value="{{ request.form['name'] or data['name'] }}" required/>
                                     <label class="form-label" for="name">Name</label>
                                 </div>
                             </div>
                             <div class="col">
                                 <div class="form-outline mb-4">
                                     <input name="surname" id="surname" class="form-control form-control-lg"
-                                           value="{{ request.form['surname'] }}" required/>
+                                           value="{{ request.form['surname'] or data['surname'] }}" required/>
                                     <label class="form-label" for="surname">Surname</label>
                                 </div>
                             </div>
@@ -39,7 +39,7 @@
                             <div class="col">
                                 <div class="form-outline mb-4">
                                     <input name="pesel" id="pesel" class="form-control form-control-lg"
-                                           value="{{ request.form['pesel'] }}" required/>
+                                           value="{{ request.form['pesel'] or data['pesel'] }}" required/>
                                     <label class="form-label" for="pesel">Pesel</label>
                                 </div>
                             </div>
@@ -47,7 +47,7 @@
                                 <div class="form-outline mb-4">
 
                                     <input name="date" id="date" class="form-control form-control-lg"
-                                           value="{{ request.form['date'] }}" placeholder="DD/MM/YYYY" type="text"/>
+                                           value="{{ request.form['date'] or data['date'] }}" placeholder="DD/MM/YYYY" type="text"/>
                                     <label class="form-label" for="date">Birth date</label>
                                 </div>
                             </div>
@@ -58,14 +58,14 @@
                             <div class="col">
                                 <div class="form-outline mb-4">
                                     <input name="phone" id="phone" class="form-control form-control-lg"
-                                           value="{{ request.form['phone'] }}"/>
+                                           value="{{ request.form['phone'] or data['phone'] }}"/>
                                     <label class="form-label" for="phone">Phone number</label>
                                 </div>
                             </div>
                             <div class="col">
                                 <div class="form-outline mb-4">
                                     <input name="email" id="email" class="form-control form-control-lg"
-                                           value="{{ request.form['email'] }}"/>
+                                           value="{{ request.form['email'] or data['email'] }}"/>
                                     <label class="form-label" for="email">Email</label>
                                 </div>
                             </div>
@@ -75,7 +75,7 @@
                             <div class="col">
                                 <div class="form-outline mb-4">
                                     <input name="adress" id="adress" class="form-control form-control-lg"
-                                           value="{{ request.form['adress'] }}"/>
+                                           value="{{ request.form['adress'] or data['adress'] }}"/>
                                     <label class="form-label" for="adress">Adress</label>
                                 </div>
                             </div>
@@ -87,14 +87,14 @@
                                 <div class="form-outline mb-4">
                                     <input type="time" id="day_start" name="day_start"
                                            class="form-control form-control-lg"
-                                           value="{{ request.form['day_start'] }}">
+                                           value="{{ request.form['day_start'] or data['day_start'] }}">
                                     <label class="form-label" for="date">Day start</label>
                                 </div>
                             </div>
                             <div class="col">
                                 <div class="form-outline mb-4">
                                     <input type="time" id="day_end" name="day_end" class="form-control form-control-lg"
-                                           value="{{ request.form['day_end'] }}">
+                                           value="{{ request.form['day_end'] or data['day_end'] }}">
                                     <label class="form-label" for="date">Day end</label>
                                 </div>
                             </div>
@@ -114,8 +114,10 @@
 </div>
 <script>
 $(document).ready(function(){
-      var date = new Date();
-      var today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+      var birth = document.getElementById("date").value;
+      var date = ('{{date|safe}}');
+
 
       var date_input=$('input[name="date"]');
       var container=$('.bootstrap-iso form').length>0 ? $('.bootstrap-iso form').parent() : "body";
@@ -127,12 +129,11 @@ $(document).ready(function(){
       };
       date_input.datepicker(options);
 
-      $( '#date' ).datepicker( 'setDate', today );
+      $( '#date' ).datepicker( 'setDate', date );
 
 
     });
-    document.getElementById("day_start").defaultValue = "07:00";
-    document.getElementById("day_end").defaultValue = "23:00";
+
 
 
 

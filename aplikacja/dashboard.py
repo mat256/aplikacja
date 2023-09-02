@@ -80,6 +80,8 @@ def getStartEnd(db, id):
         ' FROM personal p JOIN user u ON p.author_id = u.id'
         ' WHERE p.author_id = ?', (id,)
     ).fetchall()
+    if not data:
+        return ['07:00', '23:00']
     return list(data[0])
 
 
