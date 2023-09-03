@@ -12,11 +12,11 @@
         <div class="col col-lg-10">
             <div class="card" style="border-radius: 1rem;">
                 <div class="card-header">
-                    Insulin base and average glucose from last 14 days
+                    Glucose comparison over time
                 </div>
                 <div class="card-body">
-                    {{ div[1] | safe }}
-                    {{ script[1] | safe }}
+                    {{ div[0] | safe }}
+                    {{ script[0] | safe }}
                 </div>
             </div>
 

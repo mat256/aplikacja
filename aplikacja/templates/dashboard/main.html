@@ -55,41 +55,57 @@
                             Other graphs
                         </div>
                         <div class="card-body text-center">
-                            <div class="d-flex justify-content-around">
-                                <a class="btn btn-info" href="{{ url_for('dashboard.graph') }}"
-                                   role="button">Single day</a>
-                                <a class="btn btn-info" href="{{ url_for('dashboard.twoWeeksGraph') }}"
-                                   role="button">Last 14 days</a>
-                                <a class="btn btn-info" href="{{ url_for('dashboard.base') }}"
-                                   role="button">Base</a>
-                            </div>
+
+                                <div class="row justify-content-around">
+                                    <div class="col">
+                                        <a class="btn btn-info" href="{{ url_for('dashboard.graph') }}"
+                                           role="button">Single day</a>
+                                    </div>
+                                    <div class="col">
+                                        <a class="btn btn-info" href="{{ url_for('dashboard.twoWeeksGraph') }}"
+                                           role="button">Last 14 days</a>
+                                    </div>
+                                </div>
+<hr>
+
+                                <div class="row justify-content-around">
+                                    <div class="col">
+                                        <a class="btn btn-info" href="{{ url_for('dashboard.base') }}"
+                                           role="button">Base</a>
+                                    </div>
+                                    <div class="col">
+                                        <a class="btn btn-info" href="{{ url_for('dashboard.compare') }}"
+                                           role="button">Comparison</a>
+                                    </div>
+                                </div>
+
                         </div>
                     </div>
-                    </div>
-                    <div class="col">
-                        <div class="card" style="border-radius: 1rem;">
-                            <div class="card-header">
-                                User data
-                            </div>
-                            <div class="card-body text-center">
-                                <div class="d-flex justify-content-around">
-                                    <a class="btn btn-info" href="{{ url_for('data.glucose.all') }}"
-                                       role="button">Glucose</a>
-                                    <a class="btn btn-info" href="{{ url_for('data.insulin.all') }}"
-                                       role="button">Insulin</a>
-                                    <a class="btn btn-info" href="{{ url_for('data.files') }}" role="button">Files</a>
-                                </div>
+                </div>
+                <div class="col">
+                    <div class="card" style="border-radius: 1rem;">
+                        <div class="card-header">
+                            User data
+                        </div>
+                        <div class="card-body text-center">
+                            <div class="d-flex justify-content-around">
+                                <a class="btn btn-info" href="{{ url_for('data.glucose.all') }}"
+                                   role="button">Glucose</a>
+                                <a class="btn btn-info" href="{{ url_for('data.insulin.all') }}"
+                                   role="button">Insulin</a>
+                                <a class="btn btn-info" href="{{ url_for('data.files') }}" role="button">Files</a>
                             </div>
                         </div>
                     </div>
                 </div>
-
             </div>
-
 
         </div>
 
+
     </div>
-    <script>
-    </script>
-    {% endblock %}
+
+</div>
+<script>
+</script>
+{% endblock %}

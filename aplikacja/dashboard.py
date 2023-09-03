@@ -35,7 +35,7 @@ import os
 bp = Blueprint('dashboard', __name__, url_prefix='/dashboard')
 
 
-def create_avg_data(df):
+def create_avg_data(df,date='1900-01-01'):
     """  db = get_db()
     all_data = db.execute(
         'SELECT p.id, glucose, activity, info, custom_date, created, stat, author_id'
@@ -63,12 +63,14 @@ def create_avg_data(df):
     # print(df1.between_time('00:00:00', '01:00:00')['glucose'].mean())
     timing = [str(x).split()[-1] for x in pd.timedelta_range(start='1 day', end='2 days', freq='15min')]
     new['time'] = timing[:-1]
-    new['time'] = new['time'].apply(lambda x: f"1900-01-01 {x}")
+    new['orginal_time'] = timing[:-1]
+    new['time'] = new['time'].apply(lambda x: f"'1900-01-01' {x}")
+    new['orginal_time'] = new['orginal_time'].apply(lambda x: f"{date} {x}")
     new['time'] = pd.to_datetime(new['time'])
     # print(timing)
     new["glucose"] = [df1.between_time(timing[x], timing[x + 1])['glucose'].mean() for x in range(len(timing) - 1)]
     new.fillna(method="bfill", inplace=True)
-    # print(new)
+    #print(new)
     new['glucose'] = new['glucose'].astype(int)
     # print(list(new.columns.values))
     # print(list(new.index.values))
@@ -531,6 +533,37 @@ def base():
         div=[div1],
     )
 
+def createAvgPlots(df,freq):
+    grouped = df.groupby(pd.Grouper(key='custom_date', freq=freq))
+    p = figure(height=450, min_width=800, sizing_mode="stretch_width", x_axis_type="datetime")
+    i=0
+    color = Category10_10.__iter__()
+    for name,group in grouped:
+        if i==6:
+            break
+        i+=1
+        if group.shape[0]>50:
+            single = create_avg_data(group,name.date())
+            line = p.line(
+                x='time', y='glucose', source=single,
+                line_width=3,
+                color=next(color),
+                alpha=0.5
+            )
+
+    date = "@orginal_time{%F}"
+    if freq=='M':
+        date = "@orginal_time{%b}"
+    hover_tool = HoverTool(
+        tooltips=[
+            ("Time", "@orginal_time{%T}"),("Date", date)], mode='mouse', formatters={"@orginal_time": "datetime"}
+
+    )
+    p.add_tools(hover_tool)
+    return p
+
+
+
 @bp.route('/compare', methods=('GET', 'POST'))
 @login_required
 def compare():
@@ -548,57 +581,17 @@ def compare():
     df = pd.DataFrame(all_data,
                       columns=['id', 'glucose', ' activity', 'info', 'custom_date', 'stat', 'author_id'])
 
+    freq_list = [('D','Days'),('W','Weeks'),('M','Months')]
 
 
+    #script1, div1 = components(createAvgPlots(df,'M'))
+    tabs = [TabPanel(child=createAvgPlots(df, f), title=name) for f,name in freq_list]
+    p3 = Tabs(tabs=tabs)
 
-
-
-    #print(create_avg_data(df))
-    source = ColumnDataSource(create_avg_data(df))
-
-    p = figure(height=450, sizing_mode="stretch_width", x_axis_type="datetime")
-    p1 = p.line(
-        x='time', y='glucose', source=source,
-        line_width=2,
-        color="brown",
-        alpha=0.5
-    )
-    p.add_tools(HoverTool(
-        renderers=[p1],
-        tooltips=[("glucose", "@glucose"),
-                  ("time", "@time{%T}")], mode='vline', formatters={"@time": "datetime"}
-    ))
-    #p2 = p.line(x='custom_date', y='val', source=source2, line_width=2, color="olive", alpha=0.5)
-    #p2 = p.circle(x='custom_date', y='val', source=source2, size=10, color="sienna", alpha=0.5)
-    #p2 = p.vbar(x='custom_date', top='val', source=source2, width=3000000, color="darkblue")
-
-    p.add_tools(HoverTool(
-        renderers=[p1],
-        tooltips=[("amount", "@amount{0.00}"),
-                  ("time", "@custom_date{%T}")], mode='vline', formatters={"@custom_date": "datetime"}
-    ))
-
-    dstart, dend = getStartEnd(db, g.user['id'])
-    night_end = pd.Timestamp('1900-01-01T' + dstart[:2])  # pd.Timedelta(hours=7)
-    night_start = pd.Timestamp('1900-01-01T' + dend[:2])  # pd.Timedelta(hours=22)
-    green_box1 = BoxAnnotation(right=night_end, fill_color='#009E73', fill_alpha=0.1)
-    green_box2 = BoxAnnotation(left=night_start, fill_color='#009E73', fill_alpha=0.1)
-    p.add_layout(green_box1)
-    p.add_layout(green_box2)
-
-    script1, div1 = components(p)
-    p1 = figure(width=300, height=300)
-    p1.circle([1, 2, 3, 4, 5], [6, 7, 2, 4, 5], size=20, color="navy", alpha=0.5)
-    tab1 = TabPanel(child=p1, title="circle")
-
-    p2 = figure(width=300, height=300)
-    p2.line([1, 2, 3, 4, 5], [6, 7, 2, 4, 5], line_width=3, color="navy", alpha=0.5)
-    tab2 = TabPanel(child=p2, title="line")
-    p3 = Tabs(tabs=[tab1, tab2])
-    script2, div2 = components(p3)
+    script1, div1 = components(p3)
 
     return render_template(
         'dashboard/compare.html',
-        script=[script1,script2],
-        div=[div1,div2],
+        script=[script1],
+        div=[div1],
     )
