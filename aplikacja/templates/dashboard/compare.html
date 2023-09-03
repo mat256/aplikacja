@@ -1,0 +1,31 @@
+{% extends 'layout.html' %}
+
+{% block header %}
+<h1>{% block title %}Dashboard{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <p></p>
+    <div class="row d-flex h-100 justify-content-center">
+
+        <div class="col col-lg-10">
+            <div class="card" style="border-radius: 1rem;">
+                <div class="card-header">
+                    Insulin base and average glucose from last 14 days
+                </div>
+                <div class="card-body">
+                    {{ div[1] | safe }}
+                    {{ script[1] | safe }}
+                </div>
+            </div>
+
+
+
+        </div>
+    </div>
+
+</div>
+<script>
+</script>
+{% endblock %}

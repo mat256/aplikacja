@@ -202,6 +202,7 @@ def create():
                 df['from_file'] = [1] * df.shape[0]
                 df.fillna("", inplace=True)
                 df = df.drop(columns=['ID', 'Date'])
+
             except:
                 error = 'Invalid file structure.'
 

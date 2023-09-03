@@ -2,7 +2,7 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for
 )
 from werkzeug.exceptions import abort
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 from math import pi
 from aplikacja.auth import login_required
 from aplikacja.db import get_db
@@ -17,6 +17,8 @@ from bokeh.models import ColumnDataSource, HoverTool, TableColumn, DataTable, Da
 from bokeh.models.widgets import DataTable, StringFormatter, TableColumn
 from bokeh.transform import cumsum
 from bokeh.palettes import Category10_10, Category20
+from bokeh.models import TabPanel, Tabs
+from bokeh.models import CheckboxGroup, CustomJS
 from bokeh.io import show
 
 import random
@@ -74,6 +76,7 @@ def create_avg_data(df):
     # print(new.to_string())
     return new
 
+
 def getStartEnd(db, id):
     data = db.execute(
         'SELECT day_start,day_end'
@@ -83,7 +86,6 @@ def getStartEnd(db, id):
     if not data:
         return ['07:00', '23:00']
     return list(data[0])
-
 
 
 @bp.route('/')
@@ -138,11 +140,11 @@ def dashboard():
                                                                           freq='D')).sum().mean()
 
     # amount_per_day=float(amount_per_day)
-    amount_per_day = round(float(amount_per_day.iloc[0]),2)
+    amount_per_day = round(float(amount_per_day.iloc[0]), 2)
     if amount_per_day.is_integer():
         amount_per_day = int(amount_per_day)
 
-    doses_per_day = round(float(doses_per_day.iloc[0]),2)
+    doses_per_day = round(float(doses_per_day.iloc[0]), 2)
     if doses_per_day.is_integer():
         doses_per_day = int(doses_per_day)
     # print(s.mean())
@@ -186,9 +188,9 @@ def dashboard():
 
     p3 = figure(height=400, sizing_mode="scale_width", x_axis_type="datetime")
 
-    dstart,dend = getStartEnd(db, g.user['id'])
-    night_end = pd.Timestamp('1900-01-01T'+dstart[:2])  # pd.Timedelta(hours=7)
-    night_start = pd.Timestamp('1900-01-01T'+dend[:2])  # pd.Timedelta(hours=22)
+    dstart, dend = getStartEnd(db, g.user['id'])
+    night_end = pd.Timestamp('1900-01-01T' + dstart[:2])  # pd.Timedelta(hours=7)
+    night_start = pd.Timestamp('1900-01-01T' + dend[:2])  # pd.Timedelta(hours=22)
     green_box1 = BoxAnnotation(right=night_end, fill_color='#009E73', fill_alpha=0.1)
     green_box2 = BoxAnnotation(left=night_start, fill_color='#009E73', fill_alpha=0.1)
     p3.add_layout(green_box1)
@@ -239,89 +241,6 @@ def dashboard():
     )
 
 
-"""
-@bp.route('/glucose')
-@login_required
-def glucose():
-    db = get_db()
-    all_data = db.execute(
-        'SELECT p.id, glucose, activity, info, custom_date, created, stat, f.author_id, f.name'
-        ' FROM data p JOIN user u ON p.author_id = u.id JOIN file f ON p.file_id = f.id'
-        ' WHERE p.author_id = ?'
-        ' ORDER BY created DESC', (g.user['id'],)
-    ).fetchall()
-    #print(all_data[0][0])
-    df = pd.DataFrame(all_data,
-                      columns=['id', 'glucose', ' activity', 'info', 'custom_date', 'created', 'stat', 'author_id', 'name'])
-
-    #df['name'] = df['name'].astype('string')
-    #print(df.dtypes)
-    #print(df)
-    #chart_data = df.filter(['glucose', 'custom_date'], axis=1)
-    #chart_data=df
-    df = df.drop_duplicates(subset=['id'])
-    chart_data = df.filter(['id','glucose', 'custom_date','name', 'author_id'], axis=1)
-    chart_data.insert(2, "info", ["inf" for x in range(df.shape[0])], True)
-    chart_data.sort_values(by='custom_date', ascending=True, inplace=True)
-    #chart_data['name'] = chart_data['name'].astype('string')
-    #print(chart_data.dtypes)
-    #print(chart_data.to_string())
-
-    #print(chart_data.shape)
-    source2 = ColumnDataSource(chart_data)
-
-    hover_tool = HoverTool(
-        tooltips=[("Glucose", "@glucose"),
-                  ("Time", "@time{%T}")], mode='vline', formatters={"@time": "datetime"}
-    )
-   '''
-    super_low_box = BoxAnnotation(top=60, fill_alpha=0.1, fill_color='bisque')
-    low_box = BoxAnnotation(bottom=60, top=75, fill_alpha=0.1, fill_color='cornsilk')
-    mid_box = BoxAnnotation(bottom=75, top=140, fill_alpha=0.1, fill_color='honeydew')
-    high_box = BoxAnnotation(bottom=140, top=180, fill_alpha=0.1, fill_color='cornsilk')
-    super_high_box = BoxAnnotation(bottom=180, fill_alpha=0.1, fill_color='bisque')
-    p3.add_layout(super_low_box)
-    p3.add_layout(low_box)
-    p3.add_layout(mid_box)
-    p3.add_layout(high_box)
-    p3.add_layout(super_high_box)'''
-    
-    # p3.xaxis[0].formatter = DatetimeTickFormatter(months="%b %Y")
-
-
-
-    formatter = HTMLTemplateFormatter()
-
-    columns = [
-        TableColumn(field='info', title='info'),
-        TableColumn(field='glucose', title='glucose'),
-        #TableColumn(field='custom_date', title='custom_date', formatter=DateFormatter(format="%m/%d/%Y %H:%M:%S")),
-        TableColumn(field='author_id', title='author_id'),
-        #TableColumn(field='stat', title='stat'),
-        #TableColumn(field='name', title='name'),
-
-
-    ]
-
-    myTable = DataTable(source=source2, columns=columns, autosize_mode='fit_columns',
-                        reorderable = False
-                        )
-
-    # show(myTable)
-    # print(myTable)
-    # print(components(myTable))
-    script, div = components(myTable)
-    # print(div3)
-    # print(div4)
-    return render_template(
-        'dashboard/glucose.html',
-        script=[script],
-        div=[div],
-        data = all_data,
-    )
-"""
-
-
 @bp.route('/graph', methods=('GET', 'POST'))
 @login_required
 def graph():
@@ -344,14 +263,15 @@ def graph():
 
     df_ins = pd.DataFrame(all_data_ins,
                           columns=['id', 'amount', 'period', 'type', 'custom_date', 'created', 'name'])
-    #print(df_ins)
+    # print(df_ins)
     df = df.filter(['glucose', 'custom_date'], axis=1)
     df.sort_values(by='custom_date', ascending=False, inplace=True)
 
     df_ins = df_ins.filter(['amount', 'period', 'type', 'custom_date'], axis=1)
-    #print(df_ins)
+    # print(df_ins)
     df_ins.sort_values(by='custom_date', ascending=False, inplace=True)
     df_ins['val'] = 100
+    df_ins.loc[df_ins.type=='base', 'val'] = 50
 
     # print(df_ins)
     today = date.today()
@@ -376,12 +296,7 @@ def graph():
     # print(chart_data_2)
     source = ColumnDataSource(chart_data)
     source2 = ColumnDataSource(chart_data_2)
-    #print(chart_data_2)
-
-    hover_tool = HoverTool(
-        tooltips=[("glucose", "@glucose"),
-                  ("desc", "@custom_date{%T}")], mode='vline', formatters={"@custom_date": "datetime"}
-    )
+    # print(chart_data_2)
 
     p = figure(height=450, sizing_mode="stretch_width", x_axis_type="datetime")
 
@@ -525,4 +440,165 @@ def twoWeeksGraph():
         script=[script, script1],
         div=[div, div1],
         date=choosen_date
+    )
+
+
+@bp.route('/base', methods=('GET', 'POST'))
+@login_required
+def base():
+    db = get_db()
+    all_data = db.execute(
+        'SELECT p.id, glucose, activity, info, custom_date, stat, author_id'
+        ' FROM data p JOIN user u ON p.author_id = u.id'
+        ' WHERE p.author_id = ? and custom_date>=date("now","-14 day")'
+        ' ORDER BY created DESC', (g.user['id'],)
+    ).fetchall()
+    if not all_data:
+        # abort(404, f"Entry id {id} doesn't exist.")
+        flash('User needs to upload glucose data.', 'alert alert-danger')
+        return redirect(url_for('dashboard.dashboard'))
+    df = pd.DataFrame(all_data,
+                      columns=['id', 'glucose', ' activity', 'info', 'custom_date', 'stat', 'author_id'])
+
+    all_data_ins = db.execute(
+        'SELECT p.id, amount, type, custom_date'
+        ' FROM insulin p JOIN user u ON p.author_id = u.id'
+        ' WHERE p.author_id = ? and custom_date>=date("now","-14 day") and p.type="base"'
+        ' ORDER BY created DESC', (g.user['id'],)
+    ).fetchall()
+
+    if not all_data_ins:
+        # abort(404, f"Entry id {id} doesn't exist.")
+        flash('User needs to upload insulin data.', 'alert alert-danger')
+        return redirect(url_for('dashboard.dashboard'))
+
+    df_ins = pd.DataFrame(all_data_ins,
+                          columns=['id', 'amount', 'type', 'custom_date'])
+    grouped = df_ins.groupby(pd.Grouper(key='custom_date', freq='D'))
+    for name, group in grouped:
+        if group.shape[0] == 24:
+            # print(group['custom_date'][1].time())
+            group['custom_date'] = group['custom_date'].apply(lambda x: f"1900-01-01 {x.time()}")
+            group['custom_date'] = pd.to_datetime(group['custom_date'])
+            group['val'] = group['amount']*50
+            #group['amount'] = group['amount']*50
+            # print(type(group))
+            # print(group)
+            break
+
+
+    #print(create_avg_data(df))
+    source = ColumnDataSource(create_avg_data(df))
+    source2 = ColumnDataSource(group)
+
+    p = figure(height=450, sizing_mode="stretch_width", x_axis_type="datetime")
+    p1 = p.line(
+        x='time', y='glucose', source=source,
+        line_width=2,
+        color="brown",
+        alpha=0.5
+    )
+    p.add_tools(HoverTool(
+        renderers=[p1],
+        tooltips=[("glucose", "@glucose"),
+                  ("time", "@time{%T}")], mode='vline', formatters={"@time": "datetime"}
+    ))
+    #p2 = p.line(x='custom_date', y='val', source=source2, line_width=2, color="olive", alpha=0.5)
+    #p2 = p.circle(x='custom_date', y='val', source=source2, size=10, color="sienna", alpha=0.5)
+    p2 = p.vbar(x='custom_date', top='val', source=source2, width=3000000, color="darkblue")
+
+    p.add_tools(HoverTool(
+        renderers=[p2],
+        tooltips=[("amount", "@amount{0.00}"),
+                  ("time", "@custom_date{%T}")], mode='vline', formatters={"@custom_date": "datetime"}
+    ))
+
+    dstart, dend = getStartEnd(db, g.user['id'])
+    night_end = pd.Timestamp('1900-01-01T' + dstart[:2])  # pd.Timedelta(hours=7)
+    night_start = pd.Timestamp('1900-01-01T' + dend[:2])  # pd.Timedelta(hours=22)
+    green_box1 = BoxAnnotation(right=night_end, fill_color='#009E73', fill_alpha=0.1)
+    green_box2 = BoxAnnotation(left=night_start, fill_color='#009E73', fill_alpha=0.1)
+    p.add_layout(green_box1)
+    p.add_layout(green_box2)
+
+    script1, div1 = components(p)
+
+
+
+    return render_template(
+        'dashboard/base.html',
+        script=[script1],
+        div=[div1],
+    )
+
+@bp.route('/compare', methods=('GET', 'POST'))
+@login_required
+def compare():
+    db = get_db()
+    all_data = db.execute(
+        'SELECT p.id, glucose, activity, info, custom_date, stat, author_id'
+        ' FROM data p JOIN user u ON p.author_id = u.id'
+        ' WHERE p.author_id = ? and custom_date>=date("now","-6 months")'
+        ' ORDER BY created DESC', (g.user['id'],)
+    ).fetchall()
+    if not all_data:
+        # abort(404, f"Entry id {id} doesn't exist.")
+        flash('User needs to upload glucose data.', 'alert alert-danger')
+        return redirect(url_for('dashboard.dashboard'))
+    df = pd.DataFrame(all_data,
+                      columns=['id', 'glucose', ' activity', 'info', 'custom_date', 'stat', 'author_id'])
+
+
+
+
+
+
+    #print(create_avg_data(df))
+    source = ColumnDataSource(create_avg_data(df))
+
+    p = figure(height=450, sizing_mode="stretch_width", x_axis_type="datetime")
+    p1 = p.line(
+        x='time', y='glucose', source=source,
+        line_width=2,
+        color="brown",
+        alpha=0.5
+    )
+    p.add_tools(HoverTool(
+        renderers=[p1],
+        tooltips=[("glucose", "@glucose"),
+                  ("time", "@time{%T}")], mode='vline', formatters={"@time": "datetime"}
+    ))
+    #p2 = p.line(x='custom_date', y='val', source=source2, line_width=2, color="olive", alpha=0.5)
+    #p2 = p.circle(x='custom_date', y='val', source=source2, size=10, color="sienna", alpha=0.5)
+    #p2 = p.vbar(x='custom_date', top='val', source=source2, width=3000000, color="darkblue")
+
+    p.add_tools(HoverTool(
+        renderers=[p1],
+        tooltips=[("amount", "@amount{0.00}"),
+                  ("time", "@custom_date{%T}")], mode='vline', formatters={"@custom_date": "datetime"}
+    ))
+
+    dstart, dend = getStartEnd(db, g.user['id'])
+    night_end = pd.Timestamp('1900-01-01T' + dstart[:2])  # pd.Timedelta(hours=7)
+    night_start = pd.Timestamp('1900-01-01T' + dend[:2])  # pd.Timedelta(hours=22)
+    green_box1 = BoxAnnotation(right=night_end, fill_color='#009E73', fill_alpha=0.1)
+    green_box2 = BoxAnnotation(left=night_start, fill_color='#009E73', fill_alpha=0.1)
+    p.add_layout(green_box1)
+    p.add_layout(green_box2)
+
+    script1, div1 = components(p)
+    p1 = figure(width=300, height=300)
+    p1.circle([1, 2, 3, 4, 5], [6, 7, 2, 4, 5], size=20, color="navy", alpha=0.5)
+    tab1 = TabPanel(child=p1, title="circle")
+
+    p2 = figure(width=300, height=300)
+    p2.line([1, 2, 3, 4, 5], [6, 7, 2, 4, 5], line_width=3, color="navy", alpha=0.5)
+    tab2 = TabPanel(child=p2, title="line")
+    p3 = Tabs(tabs=[tab1, tab2])
+    script2, div2 = components(p3)
+
+    return render_template(
+        'dashboard/compare.html',
+        script=[script1,script2],
+        div=[div1,div2],
     )
