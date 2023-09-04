@@ -34,6 +34,34 @@
                 </div>
             </div>
             <p></p>
+            <div class="card" style="border-radius: 1rem;">
+                <div class="card-header">
+                    Report
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{{ url_for('dashboard.download') }}">
+                        <div class="card-body text-center py-0">
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input type="checkbox" class="form-check-input" name="personal">Option 1
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input type="checkbox" class="form-check-input" name="glucose">Option 2
+                                </label>
+                            </div>
+                            <div class="form-check  pb-2">
+                                <label class="form-check-label">
+                                    <input type="checkbox" class="form-check-input" name="base">Option 3
+                                </label>
+                            </div>
+                            <button class="btn btn-primary btn-lg btn-block" type="submit" value="Save">Generate
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
 
 
         </div>
@@ -56,28 +84,28 @@
                         </div>
                         <div class="card-body text-center">
 
-                                <div class="row justify-content-around">
-                                    <div class="col">
-                                        <a class="btn btn-info" href="{{ url_for('dashboard.graph') }}"
-                                           role="button">Single day</a>
-                                    </div>
-                                    <div class="col">
-                                        <a class="btn btn-info" href="{{ url_for('dashboard.twoWeeksGraph') }}"
-                                           role="button">Last 14 days</a>
-                                    </div>
+                            <div class="row justify-content-around">
+                                <div class="col">
+                                    <a class="btn btn-info" href="{{ url_for('dashboard.graph') }}"
+                                       role="button">Single day</a>
                                 </div>
-<hr>
+                                <div class="col">
+                                    <a class="btn btn-info" href="{{ url_for('dashboard.twoWeeksGraph') }}"
+                                       role="button">Last 14 days</a>
+                                </div>
+                            </div>
+                            <hr>
 
-                                <div class="row justify-content-around">
-                                    <div class="col">
-                                        <a class="btn btn-info" href="{{ url_for('dashboard.base') }}"
-                                           role="button">Base</a>
-                                    </div>
-                                    <div class="col">
-                                        <a class="btn btn-info" href="{{ url_for('dashboard.compare') }}"
-                                           role="button">Comparison</a>
-                                    </div>
+                            <div class="row justify-content-around">
+                                <div class="col">
+                                    <a class="btn btn-info" href="{{ url_for('dashboard.base') }}"
+                                       role="button">Base</a>
                                 </div>
+                                <div class="col">
+                                    <a class="btn btn-info" href="{{ url_for('dashboard.compare') }}"
+                                       role="button">Comparison</a>
+                                </div>
+                            </div>
 
                         </div>
                     </div>

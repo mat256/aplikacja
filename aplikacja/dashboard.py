@@ -1,5 +1,5 @@
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for
+    Blueprint, flash, g, redirect, render_template, request, url_for, send_file
 )
 from werkzeug.exceptions import abort
 from datetime import date, timedelta, datetime
@@ -9,6 +9,10 @@ from aplikacja.db import get_db
 from bokeh.layouts import gridplot
 import datetime
 from bokeh.models import Title
+from fpdf import FPDF
+import io
+import uuid
+import os
 
 from bokeh.embed import components
 from bokeh.plotting import figure
@@ -595,3 +599,32 @@ def compare():
         script=[script1],
         div=[div1],
     )
+
+@bp.route('/download', methods=('GET', 'POST'))
+@login_required
+def download():
+
+    if request.method == 'POST':
+        if request.form.get('personal'):
+            print('ok')
+        if request.form.get('glucose'):
+            print('ok')
+        if request.form.get('base'):
+            print('ok')
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font('Arial', 'B', 16)
+    pdf.cell(40, 10, 'Hello World!')
+    name = uuid.uuid4().hex
+    file_path = 'temp_files/' + name + '.pdf'
+    pdf.output(name = file_path)
+    return_data = io.BytesIO()
+    with open(file_path, 'rb') as fo:
+        return_data.write(fo.read())
+    # (after writing, cursor will be at last byte, so move it to start)
+    return_data.seek(0)
+
+    os.remove(file_path)
+    #print(file.decode(encoding='latin-1'))
+    #upload = Upload.query.filter_by(id=upload_id).first()
+    return send_file(return_data, mimetype='application/pdf', download_name='report.pdf')
