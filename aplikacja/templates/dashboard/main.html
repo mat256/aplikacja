@@ -40,20 +40,25 @@
                 </div>
                 <div class="card-body">
                     <form method="post" action="{{ url_for('dashboard.download') }}">
-                        <div class="card-body text-center py-0">
+                        <div class="card-body text-left py-0">
                             <div class="form-check">
                                 <label class="form-check-label">
-                                    <input type="checkbox" class="form-check-input" name="personal">Option 1
+                                    <input type="checkbox" class="form-check-input" name="personal">Personal information
                                 </label>
                             </div>
                             <div class="form-check">
                                 <label class="form-check-label">
-                                    <input type="checkbox" class="form-check-input" name="glucose">Option 2
+                                    <input type="checkbox" class="form-check-input" name="glucose">Glucose
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <label class="form-check-label">
+                                    <input type="checkbox" class="form-check-input" name="base">Base
                                 </label>
                             </div>
                             <div class="form-check  pb-2">
                                 <label class="form-check-label">
-                                    <input type="checkbox" class="form-check-input" name="base">Option 3
+                                    <input type="checkbox" class="form-check-input" name="blank">Blank
                                 </label>
                             </div>
                             <button class="btn btn-primary btn-lg btn-block" type="submit" value="Save">Generate

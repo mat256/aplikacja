@@ -12,6 +12,7 @@ from bokeh.models import Title
 from fpdf import FPDF
 import io
 import uuid
+from bokeh.io import export_png
 import os
 
 from bokeh.embed import components
@@ -449,6 +450,22 @@ def twoWeeksGraph():
     )
 
 
+
+def getBase(df):
+    grouped = df.groupby(pd.Grouper(key='custom_date', freq='D'))
+    for name, group in grouped:
+        if group.shape[0] == 24:
+            # print(group['custom_date'][1].time())
+            group['custom_date'] = group['custom_date'].apply(lambda x: f"1900-01-01 {x.time()}")
+            group['custom_date'] = pd.to_datetime(group['custom_date'])
+            group['val'] = group['amount'] * 50
+            # group['amount'] = group['amount']*50
+            # print(type(group))
+            # print(group)
+            break
+    return group
+
+
 @bp.route('/base', methods=('GET', 'POST'))
 @login_required
 def base():
@@ -480,17 +497,7 @@ def base():
 
     df_ins = pd.DataFrame(all_data_ins,
                           columns=['id', 'amount', 'type', 'custom_date'])
-    grouped = df_ins.groupby(pd.Grouper(key='custom_date', freq='D'))
-    for name, group in grouped:
-        if group.shape[0] == 24:
-            # print(group['custom_date'][1].time())
-            group['custom_date'] = group['custom_date'].apply(lambda x: f"1900-01-01 {x.time()}")
-            group['custom_date'] = pd.to_datetime(group['custom_date'])
-            group['val'] = group['amount']*50
-            #group['amount'] = group['amount']*50
-            # print(type(group))
-            # print(group)
-            break
+    group = getBase(df_ins)
 
 
     #print(create_avg_data(df))
@@ -659,6 +666,10 @@ class PDF(FPDF):
     def column2(self, text):
             self.cell(0, 7, text, 0, 1, 'L', 0)
 
+    def mini_cell(self,w,text,bor):
+        self.set_font('Arial', 'B', 10)
+        self.cell(w, 5, text, bor, 0, 'C', 0)
+
 def partPersonal(p):
     p.part_name('Personal info')
     db=get_db()
@@ -673,6 +684,7 @@ def partPersonal(p):
     p.column2('Birth date: ' + str(data['birth_date']))
     p.column1('Phone: ' + str(data['phone']))
     p.column2('Email: ' + str(data['email']))
+    p.ln(5)
 
 def partGlucose(p):
     p.part_name('Glucose info')
@@ -689,7 +701,9 @@ def partGlucose(p):
 
     df = df.filter(['glucose', 'custom_date'], axis=1)
     df.sort_values(by='custom_date', ascending=False, inplace=True)
-    source = ColumnDataSource(create_avg_data(df))
+
+    avg_data = create_avg_data(df)
+    source = ColumnDataSource(avg_data)
     p3 = figure(height=400, width=800, x_axis_type="datetime")
     dstart, dend = getStartEnd(db, g.user['id'])
     night_end = pd.Timestamp('1900-01-01T' + dstart[:2])  # pd.Timedelta(hours=7)
@@ -704,26 +718,77 @@ def partGlucose(p):
         color="darkblue",
         alpha=0.5
     )
-    p3.legend.click_policy = "hide"
-    from bokeh.io import export_png
-    export_png(p3, filename="plot.png")
+    p3.toolbar_location = None
 
+    name = uuid.uuid4().hex
+    path = 'temp_files/' + str(name)+".png"
+    export_png(p3, filename=path)
+
+    p.image(path, x=None, y=None, w=180, h=90, type='')
+    p.ln(1)
+    os.remove(path)
+    avg_g = int(df['glucose'].mean())
+    proc_over = int(len(df[df["glucose"] >= 180]) / df.shape[0] * 100)
+    p.column1('Average glucose: ' + str(avg_g))
+    p.column2('Time over 180: ' + str(proc_over)+' %')
+    p.ln(5)
+
+def partBase(p):
+    p.part_name('Base info')
+    db=get_db()
+    all_data_ins = db.execute(
+        'SELECT p.id, amount, type, custom_date'
+        ' FROM insulin p JOIN user u ON p.author_id = u.id'
+        ' WHERE p.author_id = ? and custom_date>=date("now","-14 day") and p.type="base"'
+        ' ORDER BY created DESC', (g.user['id'],)
+    ).fetchall()
+
+    if not all_data_ins:
+        # abort(404, f"Entry id {id} doesn't exist.")
+        flash('User needs to upload insulin data.', 'alert alert-danger')
+        return redirect(url_for('dashboard.dashboard'))
+
+    df_ins = pd.DataFrame(all_data_ins,
+                          columns=['id', 'amount', 'type', 'custom_date'])
+    group = getBase(df_ins)
+    #print(group)
+    p.mini_cell(16,'amount','BR')
+    for index, row in group.iterrows():
+        p.mini_cell(7,str(row['amount']), 'RLB')
+    p.ln(5)
+    p.mini_cell(16, 'Time (h)', 'R')
+    for index, row in group.iterrows():
+        p.mini_cell(7,str(row['custom_date']).split()[1][:2], 'RL')
+    p.ln(10)
+
+def partBlank(p,b):
+    if b:
+        p.add_page()
+    p.part_name('Suggested setting/values')
 
 
 @bp.route('/download', methods=('GET', 'POST'))
 @login_required
 def download():
     pdf = PDF()
+    pdf.set_title(title)
     pdf.add_page()
     pdf.set_font('Arial', 'B', 16)
+    b = False
     if request.method == 'POST':
         if request.form.get('personal'):
+            b = True
             partPersonal(pdf)
         if request.form.get('glucose'):
+            b = True
             partGlucose(pdf)
         if request.form.get('base'):
-            print('ok')
-    pdf.set_title(title)
+            b = True
+            partBase(pdf)
+        if request.form.get('blank'):
+            #print(b)
+            partBlank(pdf,b)
+
     #pdf.cell(40, 10, 'Hello World!')
 
     name = uuid.uuid4().hex
