@@ -600,21 +600,132 @@ def compare():
         div=[div1],
     )
 
+
+title = 'User information report'
+class PDF(FPDF):
+    def header(self):
+        # Arial bold 15
+        self.set_font('Arial', 'B', 15)
+        # Calculate width of title and position
+        w = self.get_string_width(title) + 6
+        #self.set_x((210 - w) / 2)
+        # Colors of frame, background and text
+        self.set_draw_color(0, 80, 180)
+        self.set_fill_color(230, 230, 230)
+        #self.set_text_color(220, 50, 50)
+        # Thickness of frame (1 mm)
+        self.set_line_width(1)
+        # Title
+        date = datetime.date.today()
+        self.cell(0, 9, title, 0, 1, 'C', 1)
+        self.set_font('Arial', 'B', 12)
+        self.cell(0, 9, 'date: ' + str(date), 0, 1, 'R', 0)
+        # Line break
+        self.ln(10)
+
+    def part_name(self,name):
+        # Arial bold 15
+        self.set_font('Arial', 'B', 12)
+        # Calculate width of title and position
+        w = self.get_string_width(title) + 6
+        #self.set_x((210 - w) / 2)
+        # Colors of frame, background and text
+        self.set_draw_color(230, 230, 230)
+        #self.set_fill_color(230, 230, 230)
+        #self.set_text_color(220, 50, 50)
+        # Thickness of frame (1 mm)
+        self.set_line_width(1)
+        # Title
+        #date = datetime.date.today()
+        self.cell(0, 9, name, 1, 1, 'L', 0)
+        #self.cell(0, 9, 'date: ' + str(date), 0, 1, 'R', 0)
+        # Line break
+        self.ln(5)
+
+    def footer(self):
+        # Position at 1.5 cm from bottom
+        self.set_y(-15)
+        # Arial italic 8
+        self.set_font('Arial', 'I', 8)
+        # Text color in gray
+        self.set_text_color(128)
+        # Page number
+        self.cell(0, 10, 'Page ' + str(self.page_no()), 0, 0, 'C')
+
+    def column1(self,text):
+        self.cell(10, 7, '', 0, 0, 'L', 0)
+        self.cell(100, 7, text, 0, 0, 'L', 0)
+
+    def column2(self, text):
+            self.cell(0, 7, text, 0, 1, 'L', 0)
+
+def partPersonal(p):
+    p.part_name('Personal info')
+    db=get_db()
+    data = db.execute(
+        'SELECT name, surname, pesel, birth_date, phone, email'
+        ' FROM personal p'
+        ' WHERE p.user_id = ?', (g.user['id'],)
+    ).fetchone()
+    p.column1('Name: ' + str(data['name']))
+    p.column2('Surname: ' + str(data['surname']))
+    p.column1('Pesel: ' + str(data['pesel']))
+    p.column2('Birth date: ' + str(data['birth_date']))
+    p.column1('Phone: ' + str(data['phone']))
+    p.column2('Email: ' + str(data['email']))
+
+def partGlucose(p):
+    p.part_name('Glucose info')
+    db = get_db()
+    all_data = db.execute(
+        'SELECT p.id, glucose, activity, info, custom_date, stat, author_id'
+        ' FROM data p JOIN user u ON p.author_id = u.id'
+        ' WHERE p.author_id = ? and custom_date>=date("now","-14 day")'
+        ' ORDER BY created DESC', (g.user['id'],)
+    ).fetchall()
+    df = pd.DataFrame(all_data,
+                      columns=['id', 'glucose', ' activity', 'info', 'custom_date', 'stat', 'author_id'])
+
+
+    df = df.filter(['glucose', 'custom_date'], axis=1)
+    df.sort_values(by='custom_date', ascending=False, inplace=True)
+    source = ColumnDataSource(create_avg_data(df))
+    p3 = figure(height=400, width=800, x_axis_type="datetime")
+    dstart, dend = getStartEnd(db, g.user['id'])
+    night_end = pd.Timestamp('1900-01-01T' + dstart[:2])  # pd.Timedelta(hours=7)
+    night_start = pd.Timestamp('1900-01-01T' + dend[:2])  # pd.Timedelta(hours=22)
+    green_box1 = BoxAnnotation(right=night_end, fill_color='#009E73', fill_alpha=0.1)
+    green_box2 = BoxAnnotation(left=night_start, fill_color='#009E73', fill_alpha=0.1)
+    p3.add_layout(green_box1)
+    p3.add_layout(green_box2)
+    p3.line(
+        x='time', y='glucose', source=source,
+        line_width=3,
+        color="darkblue",
+        alpha=0.5
+    )
+    p3.legend.click_policy = "hide"
+    from bokeh.io import export_png
+    export_png(p3, filename="plot.png")
+
+
+
 @bp.route('/download', methods=('GET', 'POST'))
 @login_required
 def download():
-
-    if request.method == 'POST':
-        if request.form.get('personal'):
-            print('ok')
-        if request.form.get('glucose'):
-            print('ok')
-        if request.form.get('base'):
-            print('ok')
-    pdf = FPDF()
+    pdf = PDF()
     pdf.add_page()
     pdf.set_font('Arial', 'B', 16)
-    pdf.cell(40, 10, 'Hello World!')
+    if request.method == 'POST':
+        if request.form.get('personal'):
+            partPersonal(pdf)
+        if request.form.get('glucose'):
+            partGlucose(pdf)
+        if request.form.get('base'):
+            print('ok')
+    pdf.set_title(title)
+    #pdf.cell(40, 10, 'Hello World!')
+
     name = uuid.uuid4().hex
     file_path = 'temp_files/' + name + '.pdf'
     pdf.output(name = file_path)
