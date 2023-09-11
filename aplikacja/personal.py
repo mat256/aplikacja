@@ -31,7 +31,13 @@ def get_user_data(id, check_author=True):
         ' WHERE p.user_id = ?', (id,)
     ).fetchone()
     if s_data is None:
-        abort(404, f"Entry user id {id} doesn't exist.")
+        user = get_db().execute(
+            'SELECT * FROM user WHERE id = ?', (id,)
+        ).fetchone()
+        if user is None:
+            abort(404, f"Entry user id {id} doesn't exist.")
+        else:
+            return False
 
     if check_author and s_data['author_id'] != g.user['id']:
         abort(403)
@@ -43,6 +49,8 @@ def get_user_data(id, check_author=True):
 def show():
     #db = get_db()
     data = get_user_data(g.user['id'])
+    if data==False:
+        return redirect(url_for('data.personal.create'))
     age = int((date.today() - data['birth_date']).days/365.2425)
     #print(int(age))
     return render_template('data/personal/show.html', data=data, age=age)

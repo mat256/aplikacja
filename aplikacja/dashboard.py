@@ -102,7 +102,7 @@ def dashboard():
     all_data = db.execute(
         'SELECT p.id, glucose, activity, info, custom_date, created, stat, author_id'
         ' FROM data p JOIN user u ON p.author_id = u.id'
-        ' WHERE p.author_id = ?'
+        ' WHERE p.author_id = ? and custom_date>=date("now","-6 months")'
         ' ORDER BY created DESC', (g.user['id'],)
     ).fetchall()
 
@@ -123,7 +123,7 @@ def dashboard():
     all_data_ins = db.execute(
         'SELECT p.id, amount, period, type, custom_date, created'
         ' FROM insulin p JOIN user u ON p.author_id = u.id'
-        ' WHERE p.author_id = ?'
+        ' WHERE p.author_id = ? and custom_date>=date("now","-6 months")'
         ' ORDER BY created DESC', (g.user['id'],)
     ).fetchall()
 
@@ -193,18 +193,18 @@ def dashboard():
                   ("Time", "@time{%T}")], mode='vline', formatters={"@time": "datetime"}
     )
 
-    p3 = figure(height=400, sizing_mode="scale_width", x_axis_type="datetime")
+    p2 = figure(height=400, sizing_mode="scale_width", x_axis_type="datetime")
 
     dstart, dend = getStartEnd(db, g.user['id'])
     night_end = pd.Timestamp('1900-01-01T' + dstart[:2])  # pd.Timedelta(hours=7)
     night_start = pd.Timestamp('1900-01-01T' + dend[:2])  # pd.Timedelta(hours=22)
     green_box1 = BoxAnnotation(right=night_end, fill_color='#009E73', fill_alpha=0.1)
     green_box2 = BoxAnnotation(left=night_start, fill_color='#009E73', fill_alpha=0.1)
-    p3.add_layout(green_box1)
-    p3.add_layout(green_box2)
+    p2.add_layout(green_box1)
+    p2.add_layout(green_box2)
 
-    p3.add_tools(hover_tool)
-    p3.line(
+    p2.add_tools(hover_tool)
+    p2.line(
         x='time', y='glucose', source=source,
         line_width=3,
         color="darkblue",
@@ -224,7 +224,7 @@ def dashboard():
 
     # p3.xaxis[0].formatter = DatetimeTickFormatter(months="%b %Y")
 
-    script1, div1 = components(p3)
+    script1, div1 = components(p2)
 
     formatter = HTMLTemplateFormatter()
 
@@ -233,17 +233,34 @@ def dashboard():
         TableColumn(field='custom_date', title='custom_date', formatter=DateFormatter(format="%m/%d/%Y %H:%M:%S")),
     ]
 
-    myTable = DataTable(source=source2, columns=columns, autosize_mode='fit_viewport')
+    #myTable = DataTable(source=source2, columns=columns, autosize_mode='fit_viewport')
     # show(myTable)
     # print(myTable)
     # print(components(myTable))
     # script2, div2 = components(myTable)
     # print(div3)
     # print(div4)
+    df_base = df_ins.loc[df_ins['type'] == "base"]
+    group2 = getBase(df_base,1)
+    source3 = ColumnDataSource(group2)
+    p4 = figure(height=220, sizing_mode="stretch_width", x_axis_type="datetime")
+    pb = p4.vbar(x='custom_date', top='val', source=source3, width=3000000, color="darkblue")
+
+    p4.add_tools(HoverTool(
+        renderers=[pb],
+        tooltips=[("amount", "@amount{0.00}"),
+                  ("time", "@custom_date{%T}")], mode='vline', formatters={"@custom_date": "datetime"}
+    ))
+    green_box3 = BoxAnnotation(right=night_end, fill_color='#009E73', fill_alpha=0.1)
+    green_box4 = BoxAnnotation(left=night_start, fill_color='#009E73', fill_alpha=0.1)
+    p4.add_layout(green_box3)
+    p4.add_layout(green_box4)
+    script3, div3 = components(p4)
+
     return render_template(
         'dashboard/main.html',
-        script=[script1, script2],
-        div=[div1, div2],
+        script=[script1, script2,script3],
+        div=[div1, div2,div3],
         stat=stat,
     )
 
@@ -349,8 +366,9 @@ def create_plots(days):
         # print(days[n][0])
         # print(type(days[n][0]))
         # print(days[n][0]+ pd.Timedelta(hours=5, minutes=10, seconds=3))
-        night_end = days[n][0] + pd.Timedelta(hours=7)
-        night_start = days[n][0] + pd.Timedelta(hours=22)
+        dstart, dend = getStartEnd(get_db(), g.user['id'])
+        night_end = days[n][0] + pd.Timedelta(hours=int(dstart[:2]))
+        night_start = days[n][0] + pd.Timedelta(hours=int(dend[:2]))
         green_box1 = BoxAnnotation(right=night_end, fill_color='#009E73', fill_alpha=0.1)
         green_box2 = BoxAnnotation(left=night_start, fill_color='#009E73', fill_alpha=0.1)
         a1.xaxis[0].formatter = DatetimeTickFormatter(hourmin="%H:%M")
@@ -368,7 +386,7 @@ def twoWeeksGraph():
     db = get_db()
     all_data = db.execute(
         'SELECT p.id, glucose, activity, info, custom_date, stat, author_id'
-        ' FROM data p JOIN user u ON p.author_id = u.id'
+        ' FROM data p'
         ' WHERE p.author_id = ? and custom_date>=date("now","-14 day")'
         ' ORDER BY created DESC', (g.user['id'],)
     ).fetchall()
@@ -451,14 +469,14 @@ def twoWeeksGraph():
 
 
 
-def getBase(df):
+def getBase(df,s=50):
     grouped = df.groupby(pd.Grouper(key='custom_date', freq='D'))
     for name, group in grouped:
         if group.shape[0] == 24:
             # print(group['custom_date'][1].time())
             group['custom_date'] = group['custom_date'].apply(lambda x: f"1900-01-01 {x.time()}")
             group['custom_date'] = pd.to_datetime(group['custom_date'])
-            group['val'] = group['amount'] * 50
+            group['val'] = group['amount'] * s
             # group['amount'] = group['amount']*50
             # print(type(group))
             # print(group)
