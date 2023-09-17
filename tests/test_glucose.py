@@ -49,6 +49,11 @@ def test_create(client, auth, app):
         db = get_db()
         count2 = db.execute('SELECT COUNT(id) FROM data').fetchone()[0]
         assert count2 > count
+        single = db.execute('SELECT id, file_id,from_file FROM data WHERE custom_date ="2022-10-23 00:04:00"').fetchone()
+        assert single['from_file']==1
+        #print(single['file_id'])
+        file = db.execute('SELECT * FROM file WHERE id = ?',(single['file_id'],)).fetchone()
+        assert file['name'] == 'temp_files/valid_glucose_input.xlsx'
 
 
 def test_update(client, auth, app):

@@ -41,7 +41,7 @@ def test_main_page(client, auth, app):
         db.execute('UPDATE insulin SET author_id = 2 WHERE id = 1')
         db.commit()
     response = client.get('dashboard/')
-    assert b'User needs to upload insulin data.' in response.data
+    assert b'User needs to upload glucose data.' in response.data
     with app.app_context():
         db = get_db()
         db.execute('UPDATE data SET author_id = 2 WHERE id = 1')
